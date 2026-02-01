@@ -52,4 +52,18 @@
   .safe-area-inset-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
+
+  /* Phase 6 additions */
+  .clip-hero {
+    clip-path: polygon(20% 0, 100% 0, 100% 100%, 0 100%);
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) scaleX(-1); }
+  50% { transform: translateY(-15px) scaleX(-1); }
 }
