@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* daflash Design System */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-bold leading-tight text-black;
+  }
+
+  body {
+    @apply leading-relaxed;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center px-8 py-3.5 font-heading text-[15px] font-semibold rounded-lg cursor-pointer transition-all duration-300 border-none;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary-dark hover:-translate-y-0.5;
+    box-shadow: 0 8px 24px rgba(254, 85, 87, 0.35);
+  }
+
+  .btn-outline {
+    @apply bg-transparent text-black border-2 border-black hover:bg-black hover:text-white;
+  }
+
+  .btn-dark {
+    @apply bg-black text-white hover:bg-df-gray-dark hover:-translate-y-0.5;
+  }
+
+  .section-tag {
+    @apply inline-block font-heading text-[13px] font-semibold uppercase tracking-[0.15em] text-primary mb-4;
+  }
+}
