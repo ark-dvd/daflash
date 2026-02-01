@@ -3,6 +3,11 @@ import { sanityClient, isSanityConfigured } from '@/lib/sanity';
 import DashboardStats from '@/components/admin/DashboardStats';
 import DashboardQuickActions from '@/components/admin/DashboardQuickActions';
 import DashboardRecentActivity from '@/components/admin/DashboardRecentActivity';
+import AdminTabRouter from '@/components/admin/AdminTabRouter';
+
+interface AdminPageProps {
+  searchParams: Promise<{ tab?: string }>;
+}
 
 async function getStats() {
   if (!isSanityConfigured()) {
@@ -98,7 +103,17 @@ function formatTimeAgo(date: Date): string {
   return date.toLocaleDateString();
 }
 
-export default async function AdminDashboard() {
+export default async function AdminDashboard({ searchParams }: AdminPageProps) {
+  // Handle async searchParams (Next.js 15 style)
+  const params = await searchParams;
+  const activeTab = params?.tab;
+
+  // If a tab is active, render the tab router (client component)
+  if (activeTab) {
+    return <AdminTabRouter />;
+  }
+
+  // Dashboard — fetch all data in parallel
   const [stats, activities] = await Promise.all([
     getStats(),
     getRecentActivity(),

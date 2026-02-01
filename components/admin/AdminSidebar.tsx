@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import {
   LayoutDashboard,
   Briefcase,
@@ -19,17 +19,17 @@ import {
 } from 'lucide-react';
 
 const navItems = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/services', label: 'Services', icon: Briefcase },
-  { href: '/admin/pricing', label: 'Pricing', icon: CreditCard },
-  { href: '/admin/portfolio', label: 'Portfolio', icon: FolderOpen },
-  { href: '/admin/testimonials', label: 'Testimonials', icon: MessageSquareQuote },
-  { href: '/admin/landing-pages', label: 'Landing Pages', icon: FileText },
-  { href: '/admin/clients', label: 'Clients', icon: Users },
-  { href: '/admin/catalog', label: 'Catalog', icon: Package },
-  { href: '/admin/quotes', label: 'Quotes', icon: Receipt },
-  { href: '/admin/invoices', label: 'Invoices', icon: Receipt },
-  { href: '/admin/settings', label: 'Settings', icon: Settings },
+  { tab: null, label: 'Dashboard', icon: LayoutDashboard },
+  { tab: 'services', label: 'Services', icon: Briefcase },
+  { tab: 'pricing', label: 'Pricing', icon: CreditCard },
+  { tab: 'portfolio', label: 'Portfolio', icon: FolderOpen },
+  { tab: 'testimonials', label: 'Testimonials', icon: MessageSquareQuote },
+  { tab: 'landing-pages', label: 'Landing Pages', icon: FileText },
+  { tab: 'clients', label: 'Clients', icon: Users },
+  { tab: 'catalog', label: 'Catalog', icon: Package },
+  { tab: 'quotes', label: 'Quotes', icon: Receipt },
+  { tab: 'invoices', label: 'Invoices', icon: Receipt },
+  { tab: 'settings', label: 'Settings', icon: Settings },
 ];
 
 interface AdminSidebarProps {
@@ -38,13 +38,19 @@ interface AdminSidebarProps {
 }
 
 export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
-  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get('tab');
 
-  const isActive = (href: string) => {
-    if (href === '/admin') {
-      return pathname === '/admin';
+  const isActive = (tab: string | null) => {
+    if (tab === null) {
+      return currentTab === null;
     }
-    return pathname.startsWith(href);
+    return currentTab === tab;
+  };
+
+  const getHref = (tab: string | null) => {
+    if (tab === null) return '/admin';
+    return `/admin?tab=${tab}`;
   };
 
   return (
@@ -88,12 +94,12 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100%-4rem)] scrollbar-hide">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const active = isActive(item.href);
+            const active = isActive(item.tab);
 
             return (
               <Link
-                key={item.href}
-                href={item.href}
+                key={item.tab ?? 'dashboard'}
+                href={getHref(item.tab)}
                 onClick={onClose}
                 className={`
                   flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] font-medium transition-all duration-200

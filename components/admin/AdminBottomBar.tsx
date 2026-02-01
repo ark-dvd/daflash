@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import {
   LayoutDashboard,
   Briefcase,
@@ -12,21 +12,27 @@ import {
 } from 'lucide-react';
 
 const bottomNavItems = [
-  { href: '/admin', label: 'Home', icon: LayoutDashboard },
-  { href: '/admin/services', label: 'Services', icon: Briefcase },
-  { href: '/admin/portfolio', label: 'Portfolio', icon: FolderOpen },
-  { href: '/admin/clients', label: 'Clients', icon: Users },
-  { href: '/admin/settings', label: 'Settings', icon: Settings },
+  { tab: null, label: 'Home', icon: LayoutDashboard },
+  { tab: 'services', label: 'Services', icon: Briefcase },
+  { tab: 'portfolio', label: 'Portfolio', icon: FolderOpen },
+  { tab: 'clients', label: 'Clients', icon: Users },
+  { tab: 'settings', label: 'Settings', icon: Settings },
 ];
 
 export default function AdminBottomBar() {
-  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get('tab');
 
-  const isActive = (href: string) => {
-    if (href === '/admin') {
-      return pathname === '/admin';
+  const isActive = (tab: string | null) => {
+    if (tab === null) {
+      return currentTab === null;
     }
-    return pathname.startsWith(href);
+    return currentTab === tab;
+  };
+
+  const getHref = (tab: string | null) => {
+    if (tab === null) return '/admin';
+    return `/admin?tab=${tab}`;
   };
 
   return (
@@ -34,12 +40,12 @@ export default function AdminBottomBar() {
       <div className="flex items-center justify-around h-16">
         {bottomNavItems.map((item) => {
           const Icon = item.icon;
-          const active = isActive(item.href);
+          const active = isActive(item.tab);
 
           return (
             <Link
-              key={item.href}
-              href={item.href}
+              key={item.tab ?? 'dashboard'}
+              href={getHref(item.tab)}
               className={`
                 flex flex-col items-center justify-center gap-1 flex-1 h-full px-2 transition-colors
                 ${active ? 'text-primary' : 'text-gray-500'}

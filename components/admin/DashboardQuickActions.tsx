@@ -5,33 +5,33 @@ import {
   FileText,
   UserPlus,
   FolderPlus,
-  Upload,
+  ChevronRight,
 } from 'lucide-react';
 
 const quickActions = [
   {
-    href: '/admin/quotes/new',
+    href: '/admin?tab=quotes',
     label: 'New Quote',
     description: 'Create a quote for a client',
     icon: FileText,
     color: 'bg-primary/10 text-primary',
   },
   {
-    href: '/admin/clients/new',
+    href: '/admin?tab=clients',
     label: 'Add Client',
     description: 'Register a new client',
     icon: UserPlus,
     color: 'bg-blue-50 text-blue-600',
   },
   {
-    href: '/admin/portfolio/new',
+    href: '/admin?tab=portfolio',
     label: 'Add Project',
     description: 'Showcase your work',
     icon: FolderPlus,
     color: 'bg-green-50 text-green-600',
   },
   {
-    href: '/admin/services/new',
+    href: '/admin?tab=services',
     label: 'New Service',
     description: 'Add a new service',
     icon: Plus,
@@ -65,7 +65,7 @@ export default function DashboardQuickActions() {
                   {action.description}
                 </p>
               </div>
-              <Upload className="w-4 h-4 text-gray-400 rotate-90" />
+              <ChevronRight className="w-4 h-4 text-gray-400" />
             </Link>
           );
         })}
