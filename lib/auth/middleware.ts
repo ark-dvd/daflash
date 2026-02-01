@@ -5,9 +5,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
-// Same whitelist as config.ts — keep in sync
+// Same whitelist as config.ts — keep in sync (always lowercase)
+// IMPORTANT: All emails stored lowercase — comparison is case-insensitive
 const ALLOWED_EMAILS: string[] = [
-  // Add your admin email(s) here:
+  // Add your admin email(s) here (always lowercase):
   // 'admin@daflash.com',
   // 'your.email@gmail.com',
 ];
@@ -40,9 +41,10 @@ export async function requireAdmin(
     }
 
     // Check email whitelist (skip if no emails configured)
+    // Case-insensitive comparison — 'Arik@daflash.com' matches 'arik@daflash.com'
     if (
       ALLOWED_EMAILS.length > 0 &&
-      !ALLOWED_EMAILS.includes(token.email as string)
+      !ALLOWED_EMAILS.includes((token.email as string).toLowerCase())
     ) {
       return NextResponse.json(
         { error: 'Access denied' },

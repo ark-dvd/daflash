@@ -5,10 +5,11 @@
 import { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 
-// Whitelist of allowed admin emails
+// Whitelist of allowed admin emails (stored lowercase)
 // Only these Google accounts can access /admin
+// IMPORTANT: All emails stored lowercase — comparison is case-insensitive
 const ALLOWED_EMAILS: string[] = [
-  // Add your admin email(s) here:
+  // Add your admin email(s) here (always lowercase):
   // 'admin@daflash.com',
   // 'your.email@gmail.com',
 ];
@@ -43,12 +44,12 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    // Check if the user's email is in the whitelist
+    // Check if the user's email is in the whitelist (case-insensitive)
     async signIn({ user }) {
       if (!user.email) return false;
       // If no emails are whitelisted, allow all (development convenience)
       if (ALLOWED_EMAILS.length === 0) return true;
-      return ALLOWED_EMAILS.includes(user.email);
+      return ALLOWED_EMAILS.includes(user.email.toLowerCase());
     },
 
     // Include email in the JWT token
