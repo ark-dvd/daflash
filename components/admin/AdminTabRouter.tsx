@@ -3,10 +3,14 @@
 
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
+import Link from 'next/link';
+import { Home, HardHat, ArrowRight } from 'lucide-react';
 import ServicesTab from './tabs/ServicesTab';
 import PricingTab from './tabs/PricingTab';
 import PortfolioTab from './tabs/PortfolioTab';
 import TestimonialsTab from './tabs/TestimonialsTab';
+import LandingPageEditor from './tabs/LandingPageEditor';
+import SiteSettingsTab from './tabs/SiteSettingsTab';
 
 // Loading fallback
 function TabLoading() {
@@ -27,6 +31,50 @@ function PlaceholderTab({ name }: { name: string }) {
   );
 }
 
+// Landing page selector - shows cards to choose between Realtors and Contractors
+function LandingPageSelector() {
+  return (
+    <div>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold font-heading text-gray-900">Landing Pages</h1>
+        <p className="text-sm text-gray-500 mt-1">Edit content for industry-specific landing pages</p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Link
+          href="/admin?tab=realtors"
+          className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-md hover:border-primary/20 transition-all group"
+        >
+          <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
+            <Home className="w-6 h-6 text-blue-600" />
+          </div>
+          <h3 className="text-lg font-semibold font-heading text-gray-900 mb-1">Realtors</h3>
+          <p className="text-sm text-gray-500 mb-4">
+            Customize the landing page for real estate agents
+          </p>
+          <div className="flex items-center gap-2 text-sm font-medium text-primary">
+            Edit Page <ArrowRight className="w-4 h-4" />
+          </div>
+        </Link>
+        <Link
+          href="/admin?tab=contractors"
+          className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-md hover:border-primary/20 transition-all group"
+        >
+          <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-amber-100 transition-colors">
+            <HardHat className="w-6 h-6 text-amber-600" />
+          </div>
+          <h3 className="text-lg font-semibold font-heading text-gray-900 mb-1">Contractors</h3>
+          <p className="text-sm text-gray-500 mb-4">
+            Customize the landing page for contractors
+          </p>
+          <div className="flex items-center gap-2 text-sm font-medium text-primary">
+            Edit Page <ArrowRight className="w-4 h-4" />
+          </div>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 function TabContent() {
   const searchParams = useSearchParams();
   const tab = searchParams.get('tab');
@@ -41,7 +89,11 @@ function TabContent() {
     case 'testimonials':
       return <TestimonialsTab />;
     case 'landing-pages':
-      return <PlaceholderTab name="Landing Pages" />;
+      return <LandingPageSelector />;
+    case 'realtors':
+      return <LandingPageEditor pageId="realtors" />;
+    case 'contractors':
+      return <LandingPageEditor pageId="contractors" />;
     case 'clients':
       return <PlaceholderTab name="Clients" />;
     case 'catalog':
@@ -51,7 +103,7 @@ function TabContent() {
     case 'invoices':
       return <PlaceholderTab name="Invoices" />;
     case 'settings':
-      return <PlaceholderTab name="Site Settings" />;
+      return <SiteSettingsTab />;
     default:
       return null; // Dashboard (no tab param) — handled by page.tsx
   }
