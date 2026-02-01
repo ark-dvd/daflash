@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { FileText, Receipt, Users, Package } from 'lucide-react';
 import QuotesList from './quotes/QuotesList';
 import InvoicesList from './invoices/InvoicesList';
-import ClientsManager from './quotes/ClientsManager';
-import CatalogManager from './quotes/CatalogManager';
+import ClientsManager from './billing/ClientsManager';
+import CatalogManager from './billing/CatalogManager';
 
 type SubTab = 'quotes' | 'invoices' | 'clients' | 'catalog';
 

@@ -3,7 +3,7 @@
 
 import { Plus, Trash2, GripVertical, Package } from 'lucide-react';
 import { LineItem, CatalogItem } from '@/schemas';
-import { TAX_CONFIG, calculateLineItemTotal, formatCurrency, isExemptCategory } from '@/lib/tax-utils';
+import { calculateItemTotal, formatCurrency } from '@/lib/tax-utils';
 
 interface LineItemEditorProps {
   title: string;
@@ -11,17 +11,6 @@ interface LineItemEditorProps {
   catalog: CatalogItem[];
   onChange: (items: LineItem[]) => void;
 }
-
-const CATEGORY_OPTIONS = [
-  { value: '', label: 'None (Taxable)' },
-  { value: 'web-design', label: 'Web Design' },
-  { value: 'web-development', label: 'Web Development' },
-  { value: 'hosting', label: 'Hosting' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'seo', label: 'SEO' },
-  { value: 'consulting', label: 'Consulting' },
-  { value: 'other', label: 'Other' },
-];
 
 export default function LineItemEditor({ title, items, catalog, onChange }: LineItemEditorProps) {
   const addItem = () => {
@@ -34,7 +23,7 @@ export default function LineItemEditor({ title, items, catalog, onChange }: Line
         qty: 1,
         unitPrice: 0,
         discount: 0,
-        category: '',
+        isTaxExempt: false,
         total: 0,
       },
     ]);
@@ -50,7 +39,7 @@ export default function LineItemEditor({ title, items, catalog, onChange }: Line
         qty: 1,
         unitPrice: catalogItem.unitPrice,
         discount: 0,
-        category: catalogItem.category || '',
+        isTaxExempt: false,
         total: catalogItem.unitPrice,
       },
     ]);
@@ -62,11 +51,11 @@ export default function LineItemEditor({ title, items, catalog, onChange }: Line
 
     // Recalculate total if qty, unitPrice, or discount changes
     if (field === 'qty' || field === 'unitPrice' || field === 'discount') {
-      item.total = calculateLineItemTotal(
-        field === 'qty' ? (value as number) : item.qty,
-        field === 'unitPrice' ? (value as number) : item.unitPrice,
-        field === 'discount' ? (value as number) : item.discount
-      );
+      item.total = calculateItemTotal({
+        qty: field === 'qty' ? (value as number) : item.qty,
+        unitPrice: field === 'unitPrice' ? (value as number) : item.unitPrice,
+        discount: field === 'discount' ? (value as number) : item.discount,
+      });
     }
 
     newItems[index] = item;
@@ -107,124 +96,116 @@ export default function LineItemEditor({ title, items, catalog, onChange }: Line
 
       {/* Items list */}
       <div className="space-y-3">
-        {items.map((item, index) => {
-          const isExempt = isExemptCategory(item.category);
-          return (
-            <div key={item._key || index} className="bg-gray-50 rounded-xl p-4">
-              <div className="flex items-start gap-3">
-                <GripVertical className="w-4 h-4 text-gray-400 mt-3 cursor-grab" />
+        {items.map((item, index) => (
+          <div key={item._key || index} className="bg-gray-50 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <GripVertical className="w-4 h-4 text-gray-400 mt-3 cursor-grab" />
 
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
-                  {/* Name */}
-                  <div className="lg:col-span-2">
-                    <label className="block text-xs text-gray-500 mb-1">Item Name</label>
-                    <input
-                      type="text"
-                      value={item.name}
-                      onChange={(e) => updateItem(index, 'name', e.target.value)}
-                      placeholder="Service or product name"
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
-                    />
-                  </div>
-
-                  {/* Qty */}
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">Qty</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={item.qty}
-                      onChange={(e) => updateItem(index, 'qty', Math.max(1, parseInt(e.target.value) || 1))}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
-                    />
-                  </div>
-
-                  {/* Unit Price */}
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">Unit Price</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={item.unitPrice}
-                        onChange={(e) => updateItem(index, 'unitPrice', Math.max(0, parseFloat(e.target.value) || 0))}
-                        className="w-full pl-7 pr-3 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Discount */}
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">Discount</label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={item.discount}
-                        onChange={(e) => updateItem(index, 'discount', Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
-                        className="w-full pr-7 pl-3 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
-                      />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">%</span>
-                    </div>
-                  </div>
-
-                  {/* Total */}
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">Total</label>
-                    <div className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-900">
-                      {formatCurrency(item.total)}
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => removeItem(index)}
-                  className="p-2 text-gray-400 hover:text-red-500 transition-colors mt-6"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Second row: Description + Category */}
-              <div className="mt-3 ml-7 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Description (optional)</label>
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+                {/* Name */}
+                <div className="lg:col-span-2">
+                  <label className="block text-xs text-gray-500 mb-1">Item Name</label>
                   <input
                     type="text"
-                    value={item.description}
-                    onChange={(e) => updateItem(index, 'description', e.target.value)}
-                    placeholder="Additional details"
+                    value={item.name}
+                    onChange={(e) => updateItem(index, 'name', e.target.value)}
+                    placeholder="Service or product name"
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
                   />
                 </div>
+
+                {/* Qty */}
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">
-                    Category
-                    {isExempt && (
-                      <span className="ml-2 text-green-600">
-                        ({TAX_CONFIG.DATA_PROCESSING_EXEMPTION}% tax exempt)
-                      </span>
-                    )}
-                  </label>
-                  <select
-                    value={item.category || ''}
-                    onChange={(e) => updateItem(index, 'category', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm bg-white"
-                  >
-                    {CATEGORY_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="block text-xs text-gray-500 mb-1">Qty</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={item.qty}
+                    onChange={(e) => updateItem(index, 'qty', Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
+                  />
+                </div>
+
+                {/* Unit Price */}
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Unit Price</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={item.unitPrice}
+                      onChange={(e) => updateItem(index, 'unitPrice', Math.max(0, parseFloat(e.target.value) || 0))}
+                      className="w-full pl-7 pr-3 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* Discount */}
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Discount</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={item.discount || 0}
+                      onChange={(e) => updateItem(index, 'discount', Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
+                      className="w-full pr-7 pl-3 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">%</span>
+                  </div>
+                </div>
+
+                {/* Total */}
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Total</label>
+                  <div className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-900">
+                    {formatCurrency(item.total)}
+                  </div>
                 </div>
               </div>
+
+              <button
+                onClick={() => removeItem(index)}
+                className="p-2 text-gray-400 hover:text-red-500 transition-colors mt-6"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
             </div>
-          );
-        })}
+
+            {/* Second row: Description + Tax Exempt */}
+            <div className="mt-3 ml-7 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Description (optional)</label>
+                <input
+                  type="text"
+                  value={item.description || ''}
+                  onChange={(e) => updateItem(index, 'description', e.target.value)}
+                  placeholder="Additional details"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
+                />
+              </div>
+              <div className="flex items-center">
+                <label className="flex items-center gap-2 cursor-pointer mt-5">
+                  <input
+                    type="checkbox"
+                    checked={item.isTaxExempt || false}
+                    onChange={(e) => updateItem(index, 'isTaxExempt', e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <span className="text-sm text-gray-700">
+                    Tax Exempt
+                    {item.isTaxExempt && (
+                      <span className="ml-1 text-blue-600">(No tax on this item)</span>
+                    )}
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Add button */}

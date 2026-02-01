@@ -2,9 +2,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { X, Plus, Trash2, Save, Users } from 'lucide-react';
+import { X, Plus, Trash2, Save } from 'lucide-react';
 import { Invoice, Client, LineItem } from '@/schemas';
-import { TAX_CONFIG, calculateTax, calculateLineItemTotal, formatCurrency, isExemptCategory } from '@/lib/tax-utils';
+import { DEFAULT_TAX_SETTINGS, calculateTax, calculateItemTotal, formatCurrency, TaxSettings } from '@/lib/tax-utils';
 
 interface InvoiceEditorProps {
   invoice: Invoice | null;
@@ -12,23 +12,15 @@ interface InvoiceEditorProps {
   onSave: () => void;
 }
 
-const CATEGORY_OPTIONS = [
-  { value: '', label: 'None (Taxable)' },
-  { value: 'web-design', label: 'Web Design' },
-  { value: 'web-development', label: 'Web Development' },
-  { value: 'hosting', label: 'Hosting' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'seo', label: 'SEO' },
-  { value: 'consulting', label: 'Consulting' },
-  { value: 'other', label: 'Other' },
-];
-
 export default function InvoiceEditor({ invoice, onClose, onSave }: InvoiceEditorProps) {
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>(invoice?.client?._id || '');
   const [lineItems, setLineItems] = useState<LineItem[]>(invoice?.lineItems || []);
-  const [taxRate, setTaxRate] = useState(invoice?.taxRate ?? TAX_CONFIG.DEFAULT_TAX_RATE);
-  const [applyExemption, setApplyExemption] = useState(invoice?.applyExemption ?? true);
+  const [taxEnabled, setTaxEnabled] = useState(invoice?.taxEnabled ?? DEFAULT_TAX_SETTINGS.taxEnabled);
+  const [taxRate, setTaxRate] = useState(invoice?.taxRate ?? DEFAULT_TAX_SETTINGS.taxRate);
+  const [texasExemptionEnabled, setTexasExemptionEnabled] = useState(
+    invoice?.texasExemptionEnabled ?? DEFAULT_TAX_SETTINGS.texasExemptionEnabled
+  );
   const [issueDate, setIssueDate] = useState(
     invoice?.issueDate || new Date().toISOString().split('T')[0]
   );
@@ -48,16 +40,13 @@ export default function InvoiceEditor({ invoice, onClose, onSave }: InvoiceEdito
 
   // Calculate totals
   const calculateTotals = useCallback(() => {
-    const calc = calculateTax(
-      lineItems.map((item) => ({
-        ...item,
-        total: calculateLineItemTotal(item.qty, item.unitPrice, item.discount),
-      })),
-      taxRate,
-      applyExemption
-    );
-    return calc;
-  }, [lineItems, taxRate, applyExemption]);
+    const taxSettings: TaxSettings = { taxEnabled, taxRate, texasExemptionEnabled };
+    const processedItems = lineItems.map((item) => ({
+      ...item,
+      total: calculateItemTotal(item),
+    }));
+    return calculateTax(processedItems, taxSettings);
+  }, [lineItems, taxEnabled, taxRate, texasExemptionEnabled]);
 
   const totals = calculateTotals();
 
@@ -71,7 +60,7 @@ export default function InvoiceEditor({ invoice, onClose, onSave }: InvoiceEdito
         qty: 1,
         unitPrice: 0,
         discount: 0,
-        category: '',
+        isTaxExempt: false,
         total: 0,
       },
     ]);
@@ -82,11 +71,11 @@ export default function InvoiceEditor({ invoice, onClose, onSave }: InvoiceEdito
     const item = { ...newItems[index], [field]: value };
 
     if (field === 'qty' || field === 'unitPrice' || field === 'discount') {
-      item.total = calculateLineItemTotal(
-        field === 'qty' ? (value as number) : item.qty,
-        field === 'unitPrice' ? (value as number) : item.unitPrice,
-        field === 'discount' ? (value as number) : item.discount
-      );
+      item.total = calculateItemTotal({
+        qty: field === 'qty' ? (value as number) : item.qty,
+        unitPrice: field === 'unitPrice' ? (value as number) : item.unitPrice,
+        discount: field === 'discount' ? (value as number) : item.discount,
+      });
     }
 
     newItems[index] = item;
@@ -107,16 +96,14 @@ export default function InvoiceEditor({ invoice, onClose, onSave }: InvoiceEdito
         client: selectedClientId,
         lineItems: lineItems.map((item) => ({
           ...item,
-          total: calculateLineItemTotal(item.qty, item.unitPrice, item.discount),
+          total: calculateItemTotal(item),
         })),
         subtotal: totals.subtotal,
-        discountTotal: totals.discountTotal,
+        taxEnabled,
         taxRate,
-        applyExemption,
-        taxableAmount: totals.taxableAmount,
-        exemptAmount: totals.exemptAmount,
+        texasExemptionEnabled,
         taxAmount: totals.taxAmount,
-        total: totals.total,
+        total: totals.grandTotal,
         issueDate,
         dueDate,
         status: invoice?.status || 'Draft',
@@ -217,141 +204,133 @@ export default function InvoiceEditor({ invoice, onClose, onSave }: InvoiceEdito
             </div>
 
             <div className="space-y-3">
-              {lineItems.map((item, index) => {
-                const isExempt = isExemptCategory(item.category);
-                return (
-                  <div key={item._key || index} className="bg-gray-50 rounded-xl p-4">
-                    <div className="grid grid-cols-12 gap-3">
-                      {/* Name */}
-                      <div className="col-span-12 sm:col-span-4">
-                        <label className="block text-xs text-gray-500 mb-1">Item Name</label>
-                        <input
-                          type="text"
-                          value={item.name}
-                          onChange={(e) => updateLineItem(index, 'name', e.target.value)}
-                          placeholder="Service or product"
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
-                        />
-                      </div>
+              {lineItems.map((item, index) => (
+                <div key={item._key || index} className="bg-gray-50 rounded-xl p-4">
+                  <div className="grid grid-cols-12 gap-3">
+                    {/* Name */}
+                    <div className="col-span-12 sm:col-span-4">
+                      <label className="block text-xs text-gray-500 mb-1">Item Name</label>
+                      <input
+                        type="text"
+                        value={item.name}
+                        onChange={(e) => updateLineItem(index, 'name', e.target.value)}
+                        placeholder="Service or product"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
+                      />
+                    </div>
 
-                      {/* Qty */}
-                      <div className="col-span-4 sm:col-span-1">
-                        <label className="block text-xs text-gray-500 mb-1">Qty</label>
+                    {/* Qty */}
+                    <div className="col-span-4 sm:col-span-1">
+                      <label className="block text-xs text-gray-500 mb-1">Qty</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={item.qty}
+                        onChange={(e) =>
+                          updateLineItem(index, 'qty', Math.max(1, parseInt(e.target.value) || 1))
+                        }
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
+                      />
+                    </div>
+
+                    {/* Price */}
+                    <div className="col-span-4 sm:col-span-2">
+                      <label className="block text-xs text-gray-500 mb-1">Unit Price</label>
+                      <div className="relative">
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+                          $
+                        </span>
                         <input
                           type="number"
-                          min="1"
-                          value={item.qty}
+                          min="0"
+                          step="0.01"
+                          value={item.unitPrice}
                           onChange={(e) =>
-                            updateLineItem(index, 'qty', Math.max(1, parseInt(e.target.value) || 1))
+                            updateLineItem(
+                              index,
+                              'unitPrice',
+                              Math.max(0, parseFloat(e.target.value) || 0)
+                            )
                           }
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
+                          className="w-full pl-6 pr-2 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
                         />
-                      </div>
-
-                      {/* Price */}
-                      <div className="col-span-4 sm:col-span-2">
-                        <label className="block text-xs text-gray-500 mb-1">Unit Price</label>
-                        <div className="relative">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
-                            $
-                          </span>
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={item.unitPrice}
-                            onChange={(e) =>
-                              updateLineItem(
-                                index,
-                                'unitPrice',
-                                Math.max(0, parseFloat(e.target.value) || 0)
-                              )
-                            }
-                            className="w-full pl-6 pr-2 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Discount */}
-                      <div className="col-span-4 sm:col-span-2">
-                        <label className="block text-xs text-gray-500 mb-1">Discount</label>
-                        <div className="relative">
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={item.discount}
-                            onChange={(e) =>
-                              updateLineItem(
-                                index,
-                                'discount',
-                                Math.min(100, Math.max(0, parseFloat(e.target.value) || 0))
-                              )
-                            }
-                            className="w-full pr-6 pl-2 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
-                          />
-                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
-                            %
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Total */}
-                      <div className="col-span-8 sm:col-span-2">
-                        <label className="block text-xs text-gray-500 mb-1">Total</label>
-                        <div className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium">
-                          {formatCurrency(item.total)}
-                        </div>
-                      </div>
-
-                      {/* Delete */}
-                      <div className="col-span-4 sm:col-span-1 flex items-end justify-end">
-                        <button
-                          onClick={() => removeLineItem(index)}
-                          className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
                       </div>
                     </div>
 
-                    {/* Category row */}
-                    <div className="mt-2 grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs text-gray-500 mb-1">Description</label>
+                    {/* Discount */}
+                    <div className="col-span-4 sm:col-span-2">
+                      <label className="block text-xs text-gray-500 mb-1">Discount</label>
+                      <div className="relative">
                         <input
-                          type="text"
-                          value={item.description}
-                          onChange={(e) => updateLineItem(index, 'description', e.target.value)}
-                          placeholder="Optional details"
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={item.discount || 0}
+                          onChange={(e) =>
+                            updateLineItem(
+                              index,
+                              'discount',
+                              Math.min(100, Math.max(0, parseFloat(e.target.value) || 0))
+                            )
+                          }
+                          className="w-full pr-6 pl-2 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
                         />
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+                          %
+                        </span>
                       </div>
-                      <div>
-                        <label className="block text-xs text-gray-500 mb-1">
-                          Category
-                          {isExempt && (
-                            <span className="text-green-600 ml-1">
-                              ({TAX_CONFIG.DATA_PROCESSING_EXEMPTION}% exempt)
-                            </span>
-                          )}
-                        </label>
-                        <select
-                          value={item.category || ''}
-                          onChange={(e) => updateLineItem(index, 'category', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm bg-white"
-                        >
-                          {CATEGORY_OPTIONS.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </option>
-                          ))}
-                        </select>
+                    </div>
+
+                    {/* Total */}
+                    <div className="col-span-8 sm:col-span-2">
+                      <label className="block text-xs text-gray-500 mb-1">Total</label>
+                      <div className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium">
+                        {formatCurrency(item.total)}
                       </div>
+                    </div>
+
+                    {/* Delete */}
+                    <div className="col-span-4 sm:col-span-1 flex items-end justify-end">
+                      <button
+                        onClick={() => removeLineItem(index)}
+                        className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-                );
-              })}
+
+                  {/* Second row: Description + Tax Exempt */}
+                  <div className="mt-2 grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">Description</label>
+                      <input
+                        type="text"
+                        value={item.description || ''}
+                        onChange={(e) => updateLineItem(index, 'description', e.target.value)}
+                        placeholder="Optional details"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
+                      />
+                    </div>
+                    <div className="flex items-center">
+                      <label className="flex items-center gap-2 cursor-pointer mt-5">
+                        <input
+                          type="checkbox"
+                          checked={item.isTaxExempt || false}
+                          onChange={(e) => updateLineItem(index, 'isTaxExempt', e.target.checked)}
+                          className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        />
+                        <span className="text-sm text-gray-700">
+                          Tax Exempt
+                          {item.isTaxExempt && (
+                            <span className="ml-1 text-blue-600">(No tax)</span>
+                          )}
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              ))}
 
               <button
                 onClick={addLineItem}
@@ -366,32 +345,46 @@ export default function InvoiceEditor({ invoice, onClose, onSave }: InvoiceEdito
           {/* Tax Settings */}
           <div className="bg-gray-50 rounded-xl p-4">
             <h4 className="font-semibold text-gray-900 mb-3">Tax Settings</h4>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Tax Rate (%)</label>
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.01"
-                  value={taxRate}
-                  onChange={(e) =>
-                    setTaxRate(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))
-                  }
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
+                  type="checkbox"
+                  checked={taxEnabled}
+                  onChange={(e) => setTaxEnabled(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
                 />
-              </div>
-              <div className="flex items-center">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={applyExemption}
-                    onChange={(e) => setApplyExemption(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
-                  />
-                  <span className="text-sm text-gray-700">Apply data processing exemption</span>
-                </label>
-              </div>
+                <span className="text-sm text-gray-700">Enable Tax</span>
+              </label>
+
+              {taxEnabled && (
+                <div className="grid grid-cols-2 gap-4 pt-2">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Tax Rate (%)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={taxRate}
+                      onChange={(e) =>
+                        setTaxRate(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))
+                      }
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm"
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <label className="flex items-center gap-2 cursor-pointer mt-5">
+                      <input
+                        type="checkbox"
+                        checked={texasExemptionEnabled}
+                        onChange={(e) => setTexasExemptionEnabled(e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <span className="text-sm text-gray-700">Texas 20% exemption</span>
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -414,26 +407,25 @@ export default function InvoiceEditor({ invoice, onClose, onSave }: InvoiceEdito
                 <span className="text-gray-600">Subtotal</span>
                 <span>{formatCurrency(totals.subtotal)}</span>
               </div>
-              {totals.discountTotal > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Discounts</span>
-                  <span>-{formatCurrency(totals.discountTotal)}</span>
-                </div>
+              {taxEnabled && (
+                <>
+                  <div className="flex justify-between text-gray-500">
+                    <span>
+                      Taxable Amount
+                      {texasExemptionEnabled && ' (80%)'}
+                    </span>
+                    <span>{formatCurrency(totals.taxableAmount)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Tax ({taxRate}%)</span>
+                    <span>{formatCurrency(totals.taxAmount)}</span>
+                  </div>
+                </>
               )}
-              {applyExemption && totals.exemptAmount > 0 && (
-                <div className="flex justify-between text-gray-500">
-                  <span>Tax Exempt Amount</span>
-                  <span>{formatCurrency(totals.exemptAmount)}</span>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span className="text-gray-600">Tax ({taxRate}%)</span>
-                <span>{formatCurrency(totals.taxAmount)}</span>
-              </div>
               <div className="border-t border-primary/20 pt-2 mt-2">
                 <div className="flex justify-between font-semibold text-lg text-primary">
                   <span>Total</span>
-                  <span>{formatCurrency(totals.total)}</span>
+                  <span>{formatCurrency(totals.grandTotal)}</span>
                 </div>
               </div>
             </div>

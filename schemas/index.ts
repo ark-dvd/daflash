@@ -113,28 +113,26 @@ export interface LineItem {
   description?: string;
   qty: number;
   unitPrice: number;
-  discount: number;       // 0-100 percentage discount per line
-  category?: string;      // For tax exemption categorization
-  isExempt?: boolean;     // Override: mark as tax-exempt
-  total: number;          // After line discount, before tax
+  discount?: number;       // Percentage 0-100 (optional, defaults to 0)
+  isTaxExempt?: boolean;   // If true, no tax on this item
+  total: number;           // After discount: unitPrice * qty * (1 - discount/100)
 }
 
 export interface Quote {
   _id: string;
   _type: 'quote';
   quoteNumber: string;
-  client: Client;           // Expanded reference
+  client: Client;                // Expanded reference
   oneTimeItems: LineItem[];
   recurringItems: LineItem[];
-  oneTimeSubtotal: number;
-  monthlySubtotal: number;
+  oneTimeSubtotal: number;       // Sum of all one-time item totals (after discounts)
+  monthlySubtotal: number;       // Sum of all recurring item totals (after discounts)
   // Tax fields
-  taxRate: number;          // Default 8.25% Texas
-  applyExemption: boolean;  // Apply 20% data processing exemption
-  oneTimeTax: number;
-  monthlyTax: number;
-  oneTimeTotal: number;     // After tax
-  monthlyTotal: number;     // After tax
+  taxEnabled: boolean;           // Global toggle: is tax applied to this quote?
+  taxRate: number;               // e.g., 8.25
+  texasExemptionEnabled: boolean; // 20% data processing exemption (tax on 80% only)
+  taxAmount: number;             // Calculated total tax
+  grandTotal: number;            // oneTimeSubtotal + taxAmount (for one-time portion)
   // Terms and status
   contractTerms?: string;
   expiryDate: string;
@@ -148,17 +146,16 @@ export interface Invoice {
   _type: 'invoice';
   invoiceNumber: string;
   relatedQuote?: { _id: string; quoteNumber: string }; // Expanded reference
-  client: Client;           // Expanded reference
+  client: Client;                // Expanded reference
   lineItems: LineItem[];
-  subtotal: number;         // Before discounts
-  discountTotal: number;    // Sum of all line discounts
+  subtotal: number;              // Sum of all line item totals (after discounts)
   // Tax fields
-  taxRate: number;          // Default 8.25% Texas
-  applyExemption: boolean;  // Apply 20% data processing exemption
-  taxableAmount: number;    // Amount subject to tax
-  exemptAmount: number;     // Amount exempt from tax
-  taxAmount: number;        // Calculated tax
-  total: number;            // Final total
+  taxEnabled: boolean;           // Global toggle
+  taxRate: number;               // e.g., 8.25
+  texasExemptionEnabled: boolean;
+  taxAmount: number;             // Calculated total tax
+  // End tax fields
+  total: number;                 // subtotal + taxAmount
   issueDate: string;
   dueDate: string;
   status: 'Draft' | 'Sent' | 'Paid' | 'Overdue' | 'Cancelled';

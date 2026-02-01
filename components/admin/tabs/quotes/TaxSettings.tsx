@@ -3,39 +3,41 @@
 
 import { Info } from 'lucide-react';
 import { LineItem } from '@/schemas';
-import { TAX_CONFIG, calculateTax, calculateLineItemTotal, formatCurrency, formatPercentage, isExemptCategory } from '@/lib/tax-utils';
+import { DEFAULT_TAX_SETTINGS, calculateTax, calculateItemTotal, formatCurrency, formatPercentage, TaxSettings } from '@/lib/tax-utils';
 
-interface TaxSettingsProps {
+interface TaxSettingsPanelProps {
+  taxEnabled: boolean;
   taxRate: number;
-  applyExemption: boolean;
+  texasExemptionEnabled: boolean;
+  onTaxEnabledChange: (enabled: boolean) => void;
   onTaxRateChange: (rate: number) => void;
-  onApplyExemptionChange: (apply: boolean) => void;
+  onTexasExemptionEnabledChange: (enabled: boolean) => void;
   oneTimeItems: LineItem[];
   recurringItems: LineItem[];
 }
 
-export default function TaxSettings({
+export default function TaxSettingsPanel({
+  taxEnabled,
   taxRate,
-  applyExemption,
+  texasExemptionEnabled,
+  onTaxEnabledChange,
   onTaxRateChange,
-  onApplyExemptionChange,
+  onTexasExemptionEnabledChange,
   oneTimeItems,
   recurringItems,
-}: TaxSettingsProps) {
+}: TaxSettingsPanelProps) {
   const allItems = [...oneTimeItems, ...recurringItems];
 
   // Calculate tax preview
-  const taxCalc = calculateTax(
-    allItems.map((item) => ({
-      ...item,
-      total: calculateLineItemTotal(item.qty, item.unitPrice, item.discount),
-    })),
-    taxRate,
-    applyExemption
-  );
+  const taxSettings: TaxSettings = { taxEnabled, taxRate, texasExemptionEnabled };
+  const processedItems = allItems.map((item) => ({
+    ...item,
+    total: calculateItemTotal(item),
+  }));
+  const taxCalc = calculateTax(processedItems, taxSettings);
 
   // Count exempt items
-  const exemptItemCount = allItems.filter((item) => isExemptCategory(item.category)).length;
+  const exemptItemCount = allItems.filter((item) => item.isTaxExempt).length;
 
   return (
     <div className="space-y-6">
@@ -47,54 +49,73 @@ export default function TaxSettings({
         <div className="text-sm text-blue-800">
           <p className="font-medium mb-1">Texas Tax Information</p>
           <p>
-            The default tax rate of {TAX_CONFIG.DEFAULT_TAX_RATE}% includes Texas state sales tax plus local taxes for the Austin area.
-            Data processing services (web design, development, hosting, etc.) qualify for a{' '}
-            {TAX_CONFIG.DATA_PROCESSING_EXEMPTION}% exemption under Texas Tax Code §151.351.
+            The default tax rate of {DEFAULT_TAX_SETTINGS.taxRate}% includes Texas state sales tax plus local taxes for the Austin area.
+            Data processing services qualify for a 20% exemption under Texas Tax Code §151.351 — meaning only 80% of the amount is taxable.
           </p>
         </div>
       </div>
 
-      {/* Tax Rate */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Tax Rate (%)</label>
-        <div className="flex items-center gap-4">
-          <input
-            type="number"
-            min="0"
-            max="100"
-            step="0.01"
-            value={taxRate}
-            onChange={(e) => onTaxRateChange(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
-            className="w-32 px-4 py-2.5 border border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none"
-          />
-          <button
-            onClick={() => onTaxRateChange(TAX_CONFIG.DEFAULT_TAX_RATE)}
-            className="text-sm text-primary hover:underline"
-          >
-            Reset to default ({TAX_CONFIG.DEFAULT_TAX_RATE}%)
-          </button>
-        </div>
-      </div>
-
-      {/* Data Processing Exemption */}
+      {/* Tax Enabled Toggle */}
       <div>
         <label className="flex items-center gap-3 cursor-pointer">
           <input
             type="checkbox"
-            checked={applyExemption}
-            onChange={(e) => onApplyExemptionChange(e.target.checked)}
+            checked={taxEnabled}
+            onChange={(e) => onTaxEnabledChange(e.target.checked)}
             className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
           />
           <div>
-            <span className="text-sm font-medium text-gray-900">
-              Apply Data Processing Exemption ({TAX_CONFIG.DATA_PROCESSING_EXEMPTION}%)
-            </span>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Reduces taxable amount for qualifying services (web design, development, hosting, maintenance, SEO)
-            </p>
+            <span className="text-sm font-medium text-gray-900">Enable Tax</span>
+            <p className="text-xs text-gray-500 mt-0.5">Apply sales tax to taxable items</p>
           </div>
         </label>
       </div>
+
+      {taxEnabled && (
+        <>
+          {/* Tax Rate */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Tax Rate (%)</label>
+            <div className="flex items-center gap-4">
+              <input
+                type="number"
+                min="0"
+                max="100"
+                step="0.01"
+                value={taxRate}
+                onChange={(e) => onTaxRateChange(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
+                className="w-32 px-4 py-2.5 border border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none"
+              />
+              <button
+                onClick={() => onTaxRateChange(DEFAULT_TAX_SETTINGS.taxRate)}
+                className="text-sm text-primary hover:underline"
+              >
+                Reset to default ({DEFAULT_TAX_SETTINGS.taxRate}%)
+              </button>
+            </div>
+          </div>
+
+          {/* Texas Data Processing Exemption */}
+          <div>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={texasExemptionEnabled}
+                onChange={(e) => onTexasExemptionEnabledChange(e.target.checked)}
+                className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+              <div>
+                <span className="text-sm font-medium text-gray-900">
+                  Apply Texas Data Processing Exemption (20%)
+                </span>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Tax is calculated on 80% of the taxable amount (items not marked as Tax Exempt)
+                </p>
+              </div>
+            </label>
+          </div>
+        </>
+      )}
 
       {/* Tax Preview */}
       {allItems.length > 0 && (
@@ -102,62 +123,50 @@ export default function TaxSettings({
           <h4 className="font-medium text-gray-900 mb-3">Tax Calculation Preview</h4>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-600">Gross Subtotal</span>
+              <span className="text-gray-600">Subtotal (after discounts)</span>
               <span className="text-gray-900">{formatCurrency(taxCalc.subtotal)}</span>
             </div>
-            {taxCalc.discountTotal > 0 && (
-              <div className="flex justify-between text-green-600">
-                <span>Line Discounts</span>
-                <span>-{formatCurrency(taxCalc.discountTotal)}</span>
+            {exemptItemCount > 0 && (
+              <div className="flex justify-between text-blue-600">
+                <span>
+                  Tax Exempt Items ({exemptItemCount} item{exemptItemCount !== 1 ? 's' : ''})
+                </span>
+                <span>No tax</span>
               </div>
             )}
-            <div className="border-t border-gray-200 my-2" />
-            <div className="flex justify-between">
-              <span className="text-gray-600">Net Subtotal</span>
-              <span className="text-gray-900">
-                {formatCurrency(taxCalc.subtotal - taxCalc.discountTotal)}
-              </span>
-            </div>
-            {applyExemption && exemptItemCount > 0 && (
+            {taxEnabled && (
               <>
                 <div className="flex justify-between text-gray-600">
-                  <span>Taxable Amount</span>
+                  <span>
+                    Taxable Amount
+                    {texasExemptionEnabled && ' (80% of non-exempt items)'}
+                  </span>
                   <span>{formatCurrency(taxCalc.taxableAmount)}</span>
                 </div>
-                <div className="flex justify-between text-green-600">
-                  <span>Exempt Amount ({exemptItemCount} item{exemptItemCount !== 1 ? 's' : ''})</span>
-                  <span>{formatCurrency(taxCalc.exemptAmount)}</span>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">
+                    Tax ({formatPercentage(taxRate)})
+                  </span>
+                  <span className="text-gray-900">{formatCurrency(taxCalc.taxAmount)}</span>
                 </div>
               </>
             )}
-            <div className="flex justify-between">
-              <span className="text-gray-600">
-                Tax ({formatPercentage(taxRate)})
-                {applyExemption && taxCalc.effectiveTaxRate < taxRate && (
-                  <span className="text-green-600 ml-1">
-                    (effective: {formatPercentage(taxCalc.effectiveTaxRate)})
-                  </span>
-                )}
-              </span>
-              <span className="text-gray-900">{formatCurrency(taxCalc.taxAmount)}</span>
-            </div>
             <div className="border-t border-gray-200 my-2" />
             <div className="flex justify-between font-semibold text-gray-900">
-              <span>Total</span>
-              <span>{formatCurrency(taxCalc.total)}</span>
+              <span>Grand Total</span>
+              <span>{formatCurrency(taxCalc.grandTotal)}</span>
             </div>
           </div>
         </div>
       )}
 
-      {/* Exempt Categories Info */}
+      {/* Tax Exempt Items Info */}
       <div className="text-sm text-gray-500">
-        <p className="font-medium text-gray-700 mb-2">Qualifying Categories for Exemption:</p>
-        <ul className="list-disc list-inside space-y-1">
-          {TAX_CONFIG.EXEMPT_CATEGORIES.map((cat) => (
-            <li key={cat} className="capitalize">{cat.replace('-', ' ')}</li>
-          ))}
-        </ul>
+        <p className="font-medium text-gray-700 mb-2">Per-Item Tax Exemption:</p>
+        <p>
+          Mark individual line items as &quot;Tax Exempt&quot; in the Items step to exclude them from tax calculations entirely.
+          This is useful for items that are not subject to sales tax (e.g., certain services, resale items, or tax-exempt customers).
+        </p>
       </div>
     </div>
   );

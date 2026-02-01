@@ -15,8 +15,8 @@ export async function GET(request: NextRequest) {
         _id, _type, invoiceNumber,
         "relatedQuote": relatedQuote->{ _id, quoteNumber },
         "client": client->{ _id, _type, clientName, contactPerson, email, phone, billingAddress, notes },
-        lineItems, subtotal, discountTotal,
-        taxRate, applyExemption, taxableAmount, exemptAmount, taxAmount, total,
+        lineItems, subtotal,
+        taxEnabled, taxRate, texasExemptionEnabled, taxAmount, total,
         issueDate, dueDate, status, notes
       }`
     );
@@ -43,11 +43,9 @@ export async function POST(request: NextRequest) {
       client: { _type: 'reference', _ref: data.client },
       lineItems: data.lineItems,
       subtotal: data.subtotal,
-      discountTotal: data.discountTotal,
+      taxEnabled: data.taxEnabled,
       taxRate: data.taxRate,
-      applyExemption: data.applyExemption,
-      taxableAmount: data.taxableAmount,
-      exemptAmount: data.exemptAmount,
+      texasExemptionEnabled: data.texasExemptionEnabled,
       taxAmount: data.taxAmount,
       total: data.total,
       issueDate: data.issueDate,

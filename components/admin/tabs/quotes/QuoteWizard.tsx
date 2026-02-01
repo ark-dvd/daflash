@@ -4,9 +4,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight, Check, Users, Package, Calculator, FileText, Eye } from 'lucide-react';
 import { Quote, Client, CatalogItem, LineItem } from '@/schemas';
-import { TAX_CONFIG, calculateTax, calculateLineItemTotal, formatCurrency } from '@/lib/tax-utils';
+import { DEFAULT_TAX_SETTINGS, calculateTax, calculateItemTotal, formatCurrency, TaxSettings } from '@/lib/tax-utils';
 import LineItemEditor from './LineItemEditor';
-import TaxSettings from './TaxSettings';
+import TaxSettingsPanel from './TaxSettings';
 
 interface QuoteWizardProps {
   quote: Quote | null;
@@ -31,7 +31,7 @@ const emptyLineItem = (): LineItem => ({
   qty: 1,
   unitPrice: 0,
   discount: 0,
-  category: '',
+  isTaxExempt: false,
   total: 0,
 });
 
@@ -50,8 +50,11 @@ export default function QuoteWizard({ quote, onClose, onSave }: QuoteWizardProps
   const [recurringItems, setRecurringItems] = useState<LineItem[]>(quote?.recurringItems || []);
 
   // Tax step
-  const [taxRate, setTaxRate] = useState(quote?.taxRate ?? TAX_CONFIG.DEFAULT_TAX_RATE);
-  const [applyExemption, setApplyExemption] = useState(quote?.applyExemption ?? true);
+  const [taxEnabled, setTaxEnabled] = useState(quote?.taxEnabled ?? DEFAULT_TAX_SETTINGS.taxEnabled);
+  const [taxRate, setTaxRate] = useState(quote?.taxRate ?? DEFAULT_TAX_SETTINGS.taxRate);
+  const [texasExemptionEnabled, setTexasExemptionEnabled] = useState(
+    quote?.texasExemptionEnabled ?? DEFAULT_TAX_SETTINGS.texasExemptionEnabled
+  );
 
   // Terms step
   const [contractTerms, setContractTerms] = useState(quote?.contractTerms || '');
@@ -88,33 +91,32 @@ export default function QuoteWizard({ quote, onClose, onSave }: QuoteWizardProps
 
   // Calculate totals
   const calculateTotals = useCallback(() => {
-    const oneTimeCalc = calculateTax(
-      oneTimeItems.map((item) => ({
-        ...item,
-        total: calculateLineItemTotal(item.qty, item.unitPrice, item.discount),
-      })),
-      taxRate,
-      applyExemption
-    );
+    const taxSettings: TaxSettings = { taxEnabled, taxRate, texasExemptionEnabled };
 
-    const recurringCalc = calculateTax(
-      recurringItems.map((item) => ({
-        ...item,
-        total: calculateLineItemTotal(item.qty, item.unitPrice, item.discount),
-      })),
-      taxRate,
-      applyExemption
-    );
+    // Process items with correct totals
+    const processedOneTime = oneTimeItems.map((item) => ({
+      ...item,
+      total: calculateItemTotal(item),
+    }));
+    const processedRecurring = recurringItems.map((item) => ({
+      ...item,
+      total: calculateItemTotal(item),
+    }));
+
+    const oneTimeCalc = calculateTax(processedOneTime, taxSettings);
+    const recurringCalc = calculateTax(processedRecurring, taxSettings);
 
     return {
-      oneTimeSubtotal: oneTimeCalc.subtotal - oneTimeCalc.discountTotal,
-      oneTimeTax: oneTimeCalc.taxAmount,
-      oneTimeTotal: oneTimeCalc.total,
-      monthlySubtotal: recurringCalc.subtotal - recurringCalc.discountTotal,
-      monthlyTax: recurringCalc.taxAmount,
-      monthlyTotal: recurringCalc.total,
+      oneTimeSubtotal: oneTimeCalc.subtotal,
+      oneTimeTaxAmount: oneTimeCalc.taxAmount,
+      oneTimeGrandTotal: oneTimeCalc.grandTotal,
+      monthlySubtotal: recurringCalc.subtotal,
+      monthlyTaxAmount: recurringCalc.taxAmount,
+      monthlyGrandTotal: recurringCalc.grandTotal,
+      totalTaxAmount: oneTimeCalc.taxAmount + recurringCalc.taxAmount,
+      grandTotal: oneTimeCalc.grandTotal,
     };
-  }, [oneTimeItems, recurringItems, taxRate, applyExemption]);
+  }, [oneTimeItems, recurringItems, taxEnabled, taxRate, texasExemptionEnabled]);
 
   const totals = calculateTotals();
 
@@ -127,20 +129,19 @@ export default function QuoteWizard({ quote, onClose, onSave }: QuoteWizardProps
         client: selectedClientId,
         oneTimeItems: oneTimeItems.map((item) => ({
           ...item,
-          total: calculateLineItemTotal(item.qty, item.unitPrice, item.discount),
+          total: calculateItemTotal(item),
         })),
         recurringItems: recurringItems.map((item) => ({
           ...item,
-          total: calculateLineItemTotal(item.qty, item.unitPrice, item.discount),
+          total: calculateItemTotal(item),
         })),
         oneTimeSubtotal: totals.oneTimeSubtotal,
         monthlySubtotal: totals.monthlySubtotal,
+        taxEnabled,
         taxRate,
-        applyExemption,
-        oneTimeTax: totals.oneTimeTax,
-        monthlyTax: totals.monthlyTax,
-        oneTimeTotal: totals.oneTimeTotal,
-        monthlyTotal: totals.monthlyTotal,
+        texasExemptionEnabled,
+        taxAmount: totals.totalTaxAmount,
+        grandTotal: totals.grandTotal,
         contractTerms,
         expiryDate,
         status: quote?.status || 'Draft',
@@ -312,11 +313,13 @@ export default function QuoteWizard({ quote, onClose, onSave }: QuoteWizardProps
 
           {/* Step 3: Tax */}
           {currentStep === 'tax' && (
-            <TaxSettings
+            <TaxSettingsPanel
+              taxEnabled={taxEnabled}
               taxRate={taxRate}
-              applyExemption={applyExemption}
+              texasExemptionEnabled={texasExemptionEnabled}
+              onTaxEnabledChange={setTaxEnabled}
               onTaxRateChange={setTaxRate}
-              onApplyExemptionChange={setApplyExemption}
+              onTexasExemptionEnabledChange={setTexasExemptionEnabled}
               oneTimeItems={oneTimeItems}
               recurringItems={recurringItems}
             />
@@ -374,12 +377,15 @@ export default function QuoteWizard({ quote, onClose, onSave }: QuoteWizardProps
                         <div key={i} className="flex justify-between text-sm">
                           <span>
                             {item.name} x{item.qty}
-                            {item.discount > 0 && (
+                            {(item.discount || 0) > 0 && (
                               <span className="text-green-600 ml-2">(-{item.discount}%)</span>
+                            )}
+                            {item.isTaxExempt && (
+                              <span className="text-blue-600 ml-2">(Tax Exempt)</span>
                             )}
                           </span>
                           <span className="font-medium">
-                            {formatCurrency(calculateLineItemTotal(item.qty, item.unitPrice, item.discount))}
+                            {formatCurrency(calculateItemTotal(item))}
                           </span>
                         </div>
                       ))}
@@ -394,12 +400,15 @@ export default function QuoteWizard({ quote, onClose, onSave }: QuoteWizardProps
                         <div key={i} className="flex justify-between text-sm">
                           <span>
                             {item.name} x{item.qty}
-                            {item.discount > 0 && (
+                            {(item.discount || 0) > 0 && (
                               <span className="text-green-600 ml-2">(-{item.discount}%)</span>
+                            )}
+                            {item.isTaxExempt && (
+                              <span className="text-blue-600 ml-2">(Tax Exempt)</span>
                             )}
                           </span>
                           <span className="font-medium">
-                            {formatCurrency(calculateLineItemTotal(item.qty, item.unitPrice, item.discount))}/mo
+                            {formatCurrency(calculateItemTotal(item))}/mo
                           </span>
                         </div>
                       ))}
@@ -417,13 +426,18 @@ export default function QuoteWizard({ quote, onClose, onSave }: QuoteWizardProps
                         <span>One-Time Subtotal</span>
                         <span>{formatCurrency(totals.oneTimeSubtotal)}</span>
                       </div>
-                      <div className="flex justify-between text-sm text-gray-600">
-                        <span>Tax ({taxRate}%)</span>
-                        <span>{formatCurrency(totals.oneTimeTax)}</span>
-                      </div>
+                      {taxEnabled && (
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>
+                            Tax ({taxRate}%)
+                            {texasExemptionEnabled && ' (20% exemption applied)'}
+                          </span>
+                          <span>{formatCurrency(totals.oneTimeTaxAmount)}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between font-semibold text-primary">
                         <span>One-Time Total</span>
-                        <span>{formatCurrency(totals.oneTimeTotal)}</span>
+                        <span>{formatCurrency(totals.oneTimeGrandTotal)}</span>
                       </div>
                     </>
                   )}
@@ -434,13 +448,18 @@ export default function QuoteWizard({ quote, onClose, onSave }: QuoteWizardProps
                         <span>Monthly Subtotal</span>
                         <span>{formatCurrency(totals.monthlySubtotal)}</span>
                       </div>
-                      <div className="flex justify-between text-sm text-gray-600">
-                        <span>Monthly Tax ({taxRate}%)</span>
-                        <span>{formatCurrency(totals.monthlyTax)}</span>
-                      </div>
+                      {taxEnabled && (
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>
+                            Monthly Tax ({taxRate}%)
+                            {texasExemptionEnabled && ' (20% exemption applied)'}
+                          </span>
+                          <span>{formatCurrency(totals.monthlyTaxAmount)}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between font-semibold text-primary">
                         <span>Monthly Total</span>
-                        <span>{formatCurrency(totals.monthlyTotal)}/mo</span>
+                        <span>{formatCurrency(totals.monthlyGrandTotal)}/mo</span>
                       </div>
                     </>
                   )}

@@ -1,4 +1,4 @@
-// components/admin/tabs/quotes/ClientsManager.tsx
+// components/admin/tabs/billing/ClientsManager.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';

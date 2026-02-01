@@ -75,11 +75,8 @@ export default function QuotesList() {
   };
 
   const handleCreateInvoice = async (quote: Quote) => {
-    // Navigate to invoices tab with quote data
-    // For now, show a message
     showToast(`Creating invoice from ${quote.quoteNumber}...`, 'success');
     setActionMenuId(null);
-    // This would typically navigate to the invoice creation flow
   };
 
   const handleUpdateStatus = async (quoteId: string, status: string) => {
@@ -96,12 +93,11 @@ export default function QuotesList() {
           recurringItems: quote.recurringItems,
           oneTimeSubtotal: quote.oneTimeSubtotal,
           monthlySubtotal: quote.monthlySubtotal,
+          taxEnabled: quote.taxEnabled,
           taxRate: quote.taxRate,
-          applyExemption: quote.applyExemption,
-          oneTimeTax: quote.oneTimeTax,
-          monthlyTax: quote.monthlyTax,
-          oneTimeTotal: quote.oneTimeTotal,
-          monthlyTotal: quote.monthlyTotal,
+          texasExemptionEnabled: quote.texasExemptionEnabled,
+          taxAmount: quote.taxAmount,
+          grandTotal: quote.grandTotal,
           contractTerms: quote.contractTerms,
           expiryDate: quote.expiryDate,
           status,
@@ -233,13 +229,13 @@ export default function QuotesList() {
                       </td>
                       <td className="py-3 px-4 text-right">
                         <span className="font-medium text-gray-900">
-                          {formatCurrency(quote.oneTimeTotal || quote.oneTimeSubtotal)}
+                          {formatCurrency(quote.grandTotal || quote.oneTimeSubtotal)}
                         </span>
                       </td>
                       <td className="py-3 px-4 text-right">
-                        {quote.monthlyTotal || quote.monthlySubtotal > 0 ? (
+                        {quote.monthlySubtotal > 0 ? (
                           <span className="font-medium text-gray-900">
-                            {formatCurrency(quote.monthlyTotal || quote.monthlySubtotal)}/mo
+                            {formatCurrency(quote.monthlySubtotal)}/mo
                           </span>
                         ) : (
                           <span className="text-gray-400">—</span>

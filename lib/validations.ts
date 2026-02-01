@@ -125,9 +125,8 @@ export const lineItemSchema = z.object({
   description: z.string().default(''),
   qty: z.number().min(1).default(1),
   unitPrice: z.number().min(0),
-  discount: z.number().min(0).max(100).default(0), // Per-line discount percentage
-  category: z.string().optional(),                  // For tax exemption
-  isExempt: z.boolean().optional(),                 // Override tax exemption
+  discount: z.number().min(0).max(100).default(0),
+  isTaxExempt: z.boolean().default(false),
   total: z.number().min(0),
 });
 
@@ -140,14 +139,11 @@ export const quoteSchema = z.object({
   recurringItems: z.array(lineItemSchema).default([]),
   oneTimeSubtotal: z.number().default(0),
   monthlySubtotal: z.number().default(0),
-  // Tax fields
+  taxEnabled: z.boolean().default(true),
   taxRate: z.number().min(0).max(100).default(8.25),
-  applyExemption: z.boolean().default(true),
-  oneTimeTax: z.number().default(0),
-  monthlyTax: z.number().default(0),
-  oneTimeTotal: z.number().default(0),
-  monthlyTotal: z.number().default(0),
-  // Terms and status
+  texasExemptionEnabled: z.boolean().default(true),
+  taxAmount: z.number().default(0),
+  grandTotal: z.number().default(0),
   contractTerms: z.string().default(''),
   expiryDate: z.string().min(1, 'Expiry date is required'),
   status: z.enum(['Draft', 'Sent', 'Accepted', 'Declined', 'Expired']).default('Draft'),
@@ -161,15 +157,11 @@ export const invoiceSchema = z.object({
   client: z.string().min(1, 'Client is required'), // Sanity reference ID
   lineItems: z.array(lineItemSchema).default([]),
   subtotal: z.number().default(0),
-  discountTotal: z.number().default(0),
-  // Tax fields
+  taxEnabled: z.boolean().default(true),
   taxRate: z.number().min(0).max(100).default(8.25),
-  applyExemption: z.boolean().default(true),
-  taxableAmount: z.number().default(0),
-  exemptAmount: z.number().default(0),
+  texasExemptionEnabled: z.boolean().default(true),
   taxAmount: z.number().default(0),
   total: z.number().default(0),
-  // Dates and status
   issueDate: z.string().min(1, 'Issue date is required'),
   dueDate: z.string().min(1, 'Due date is required'),
   status: z.enum(['Draft', 'Sent', 'Paid', 'Overdue', 'Cancelled']).default('Draft'),

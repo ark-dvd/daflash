@@ -1,4 +1,4 @@
-// components/admin/tabs/quotes/CatalogManager.tsx
+// components/admin/tabs/billing/CatalogManager.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -50,7 +50,7 @@ export default function CatalogManager() {
   const [billingFilter, setBillingFilter] = useState<string>('all');
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<CatalogItem | null>(null);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState<CatalogForm>(emptyForm);
   const [isSaving, setIsSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -327,7 +327,7 @@ export default function CatalogManager() {
               <select
                 value={form.billingType}
                 onChange={(e) =>
-                  setForm({ ...form, billingType: e.target.value as 'one-time' | 'monthly' | 'annual' })
+                  setForm({ ...form, billingType: e.target.value as BillingType })
                 }
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none bg-white"
               >
@@ -351,9 +351,6 @@ export default function CatalogManager() {
                 </option>
               ))}
             </select>
-            <p className="text-xs text-gray-500 mt-1">
-              Categories like Web Design, Development, Hosting, etc. qualify for tax exemption.
-            </p>
           </div>
         </div>
       </SlidePanel>
