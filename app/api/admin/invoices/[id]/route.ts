@@ -1,0 +1,91 @@
+// app/api/admin/invoices/[id]/route.ts
+import { NextRequest } from 'next/server';
+import { requireAdmin } from '@/lib/auth/middleware';
+import { sanityClient, sanityWriteClient } from '@/lib/sanity';
+import { validate, invoiceSchema } from '@/lib/validations';
+import { jsonResponse, errorResponse } from '@/lib/api-helpers';
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const rejected = await requireAdmin(request);
+  if (rejected) return rejected;
+
+  try {
+    const invoice = await sanityClient.fetch(
+      `*[_type == "invoice" && _id == $id][0] {
+        _id, _type, invoiceNumber,
+        "relatedQuote": relatedQuote->{ _id, quoteNumber },
+        "client": client->{ _id, _type, clientName, contactPerson, email, phone, billingAddress, notes },
+        lineItems, subtotal, tax, discount, discountType, total,
+        issueDate, dueDate, status, notes
+      }`,
+      { id: params.id }
+    );
+
+    if (!invoice) {
+      return errorResponse('Invoice not found', 404);
+    }
+    return jsonResponse(invoice);
+  } catch {
+    return errorResponse('Failed to fetch invoice', 500);
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const rejected = await requireAdmin(request);
+  if (rejected) return rejected;
+
+  try {
+    const body = await request.json();
+    const data = validate(invoiceSchema, body);
+
+    const fields: Record<string, unknown> = {
+      client: { _type: 'reference', _ref: data.client },
+      lineItems: data.lineItems,
+      subtotal: data.subtotal,
+      tax: data.tax,
+      discount: data.discount,
+      discountType: data.discountType,
+      total: data.total,
+      issueDate: data.issueDate,
+      dueDate: data.dueDate,
+      status: data.status,
+      notes: data.notes,
+    };
+
+    if (data.relatedQuote) {
+      fields.relatedQuote = { _type: 'reference', _ref: data.relatedQuote };
+    }
+
+    const result = await sanityWriteClient
+      .patch(params.id)
+      .set(fields)
+      .commit();
+    return jsonResponse(result);
+  } catch (error) {
+    if (error instanceof Error && error.name === 'ZodError') {
+      return errorResponse('Validation failed: ' + error.message, 400);
+    }
+    return errorResponse('Failed to update invoice', 500);
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const rejected = await requireAdmin(request);
+  if (rejected) return rejected;
+
+  try {
+    await sanityWriteClient.delete(params.id);
+    return jsonResponse({ success: true });
+  } catch {
+    return errorResponse('Failed to delete invoice', 500);
+  }
+}

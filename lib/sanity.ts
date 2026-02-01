@@ -1,7 +1,10 @@
 // lib/sanity.ts
 import { createClient } from '@sanity/client';
 
-const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || '';
+// Use placeholder projectId during build when env var not set
+// This prevents build failures — actual API calls will fail gracefully
+// and isSanityConfigured() checks will direct to demo mode
+const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'placeholder';
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production';
 const apiVersion = '2024-01-01';
 
