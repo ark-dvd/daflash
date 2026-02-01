@@ -11,6 +11,7 @@ import PortfolioTab from './tabs/PortfolioTab';
 import TestimonialsTab from './tabs/TestimonialsTab';
 import LandingPageEditor from './tabs/LandingPageEditor';
 import SiteSettingsTab from './tabs/SiteSettingsTab';
+import QuotesInvoicesTab from './tabs/QuotesInvoicesTab';
 
 // Loading fallback
 function TabLoading() {
@@ -94,14 +95,8 @@ function TabContent() {
       return <LandingPageEditor pageId="realtors" />;
     case 'contractors':
       return <LandingPageEditor pageId="contractors" />;
-    case 'clients':
-      return <PlaceholderTab name="Clients" />;
-    case 'catalog':
-      return <PlaceholderTab name="Catalog" />;
-    case 'quotes':
-      return <PlaceholderTab name="Quotes" />;
-    case 'invoices':
-      return <PlaceholderTab name="Invoices" />;
+    case 'quotes-invoices':
+      return <QuotesInvoicesTab />;
     case 'settings':
       return <SiteSettingsTab />;
     default:

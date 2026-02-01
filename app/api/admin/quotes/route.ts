@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
         "client": client->{ _id, _type, clientName, contactPerson, email, phone, billingAddress, notes },
         oneTimeItems, recurringItems,
         oneTimeSubtotal, monthlySubtotal,
+        taxRate, applyExemption, oneTimeTax, monthlyTax, oneTimeTotal, monthlyTotal,
         contractTerms, expiryDate, status, createdAt, sentAt
       }`
     );
@@ -44,6 +45,12 @@ export async function POST(request: NextRequest) {
       recurringItems: data.recurringItems,
       oneTimeSubtotal: data.oneTimeSubtotal,
       monthlySubtotal: data.monthlySubtotal,
+      taxRate: data.taxRate,
+      applyExemption: data.applyExemption,
+      oneTimeTax: data.oneTimeTax,
+      monthlyTax: data.monthlyTax,
+      oneTimeTotal: data.oneTimeTotal,
+      monthlyTotal: data.monthlyTotal,
       contractTerms: data.contractTerms,
       expiryDate: data.expiryDate,
       status: data.status,

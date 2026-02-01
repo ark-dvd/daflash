@@ -120,10 +120,14 @@ export const catalogItemSchema = z.object({
 // LINE ITEM (shared between quotes and invoices)
 // ============================================================
 export const lineItemSchema = z.object({
+  _key: z.string().optional(),
   name: z.string().min(1),
   description: z.string().default(''),
   qty: z.number().min(1).default(1),
   unitPrice: z.number().min(0),
+  discount: z.number().min(0).max(100).default(0), // Per-line discount percentage
+  category: z.string().optional(),                  // For tax exemption
+  isExempt: z.boolean().optional(),                 // Override tax exemption
   total: z.number().min(0),
 });
 
@@ -136,6 +140,14 @@ export const quoteSchema = z.object({
   recurringItems: z.array(lineItemSchema).default([]),
   oneTimeSubtotal: z.number().default(0),
   monthlySubtotal: z.number().default(0),
+  // Tax fields
+  taxRate: z.number().min(0).max(100).default(8.25),
+  applyExemption: z.boolean().default(true),
+  oneTimeTax: z.number().default(0),
+  monthlyTax: z.number().default(0),
+  oneTimeTotal: z.number().default(0),
+  monthlyTotal: z.number().default(0),
+  // Terms and status
   contractTerms: z.string().default(''),
   expiryDate: z.string().min(1, 'Expiry date is required'),
   status: z.enum(['Draft', 'Sent', 'Accepted', 'Declined', 'Expired']).default('Draft'),
@@ -149,10 +161,15 @@ export const invoiceSchema = z.object({
   client: z.string().min(1, 'Client is required'), // Sanity reference ID
   lineItems: z.array(lineItemSchema).default([]),
   subtotal: z.number().default(0),
-  tax: z.number().min(0).max(100).optional(),
-  discount: z.number().min(0).optional(),
-  discountType: z.enum(['percentage', 'fixed']).default('percentage'),
+  discountTotal: z.number().default(0),
+  // Tax fields
+  taxRate: z.number().min(0).max(100).default(8.25),
+  applyExemption: z.boolean().default(true),
+  taxableAmount: z.number().default(0),
+  exemptAmount: z.number().default(0),
+  taxAmount: z.number().default(0),
   total: z.number().default(0),
+  // Dates and status
   issueDate: z.string().min(1, 'Issue date is required'),
   dueDate: z.string().min(1, 'Due date is required'),
   status: z.enum(['Draft', 'Sent', 'Paid', 'Overdue', 'Cancelled']).default('Draft'),

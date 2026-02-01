@@ -108,11 +108,15 @@ export interface CatalogItem {
 }
 
 export interface LineItem {
+  _key?: string;
   name: string;
   description?: string;
   qty: number;
   unitPrice: number;
-  total: number;
+  discount: number;       // 0-100 percentage discount per line
+  category?: string;      // For tax exemption categorization
+  isExempt?: boolean;     // Override: mark as tax-exempt
+  total: number;          // After line discount, before tax
 }
 
 export interface Quote {
@@ -124,6 +128,14 @@ export interface Quote {
   recurringItems: LineItem[];
   oneTimeSubtotal: number;
   monthlySubtotal: number;
+  // Tax fields
+  taxRate: number;          // Default 8.25% Texas
+  applyExemption: boolean;  // Apply 20% data processing exemption
+  oneTimeTax: number;
+  monthlyTax: number;
+  oneTimeTotal: number;     // After tax
+  monthlyTotal: number;     // After tax
+  // Terms and status
   contractTerms?: string;
   expiryDate: string;
   status: 'Draft' | 'Sent' | 'Accepted' | 'Declined' | 'Expired';
@@ -138,11 +150,15 @@ export interface Invoice {
   relatedQuote?: { _id: string; quoteNumber: string }; // Expanded reference
   client: Client;           // Expanded reference
   lineItems: LineItem[];
-  subtotal: number;
-  tax?: number;             // Percentage
-  discount?: number;        // Percentage or fixed
-  discountType?: 'percentage' | 'fixed';
-  total: number;
+  subtotal: number;         // Before discounts
+  discountTotal: number;    // Sum of all line discounts
+  // Tax fields
+  taxRate: number;          // Default 8.25% Texas
+  applyExemption: boolean;  // Apply 20% data processing exemption
+  taxableAmount: number;    // Amount subject to tax
+  exemptAmount: number;     // Amount exempt from tax
+  taxAmount: number;        // Calculated tax
+  total: number;            // Final total
   issueDate: string;
   dueDate: string;
   status: 'Draft' | 'Sent' | 'Paid' | 'Overdue' | 'Cancelled';

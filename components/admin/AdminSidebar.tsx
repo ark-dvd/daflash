@@ -10,8 +10,6 @@ import {
   FolderOpen,
   MessageSquareQuote,
   FileText,
-  Users,
-  Package,
   Receipt,
   Settings,
   X,
@@ -25,10 +23,7 @@ const navItems = [
   { tab: 'portfolio', label: 'Portfolio', icon: FolderOpen },
   { tab: 'testimonials', label: 'Testimonials', icon: MessageSquareQuote },
   { tab: 'landing-pages', label: 'Landing Pages', icon: FileText },
-  { tab: 'clients', label: 'Clients', icon: Users },
-  { tab: 'catalog', label: 'Catalog', icon: Package },
-  { tab: 'quotes', label: 'Quotes', icon: Receipt },
-  { tab: 'invoices', label: 'Invoices', icon: Receipt },
+  { tab: 'quotes-invoices', label: 'Quotes & Invoices', icon: Receipt },
   { tab: 'settings', label: 'Settings', icon: Settings },
 ];
 

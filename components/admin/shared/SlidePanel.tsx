@@ -2,16 +2,27 @@
 'use client';
 
 import { useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Save } from 'lucide-react';
 
 interface SlidePanelProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  onSave?: () => void;
+  isSaving?: boolean;
+  saveLabel?: string;
 }
 
-export default function SlidePanel({ isOpen, onClose, title, children }: SlidePanelProps) {
+export default function SlidePanel({
+  isOpen,
+  onClose,
+  title,
+  children,
+  onSave,
+  isSaving = false,
+  saveLabel = 'Save',
+}: SlidePanelProps) {
   // Prevent body scroll when panel is open
   useEffect(() => {
     if (isOpen) {
@@ -45,7 +56,7 @@ export default function SlidePanel({ isOpen, onClose, title, children }: SlidePa
 
       {/* Panel */}
       <div
-        className={`fixed top-0 right-0 h-full w-full sm:w-[480px] bg-white shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 h-full w-full sm:w-[480px] bg-white shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out flex flex-col ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -61,9 +72,37 @@ export default function SlidePanel({ isOpen, onClose, title, children }: SlidePa
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto h-[calc(100%-65px)] p-6">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto p-6">{children}</div>
+
+        {/* Footer with save button */}
+        {onSave && (
+          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50">
+            <button
+              onClick={onClose}
+              disabled={isSaving}
+              className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 rounded-xl transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onSave}
+              disabled={isSaving}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-xl transition-colors disabled:opacity-50"
+            >
+              {isSaving ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  {saveLabel}
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
     </>
   );
