@@ -1,13 +1,22 @@
 // app/portfolio/page.tsx
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ExternalLink } from 'lucide-react';
 import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import { getActivePortfolioSites, getSiteSettings } from '@/lib/data-fetchers';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Portfolio',
-  description: 'Websites we\'ve built for our clients. See our work in action.',
+  description: 'See the websites we\'ve built for our clients. Professional, fast, and tailored to each business.',
+  alternates: {
+    canonical: '/portfolio',
+  },
+  openGraph: {
+    title: 'Portfolio | daflash',
+    description: 'See the websites we\'ve built for our clients. Professional, fast, and tailored to each business.',
+    url: '/portfolio',
+  },
 };
 
 export default async function PortfolioPage() {

@@ -1,13 +1,22 @@
 // app/realtors/page.tsx
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import LucideIcon from '@/components/public/LucideIcon';
 import { getLandingPage, getSiteSettings } from '@/lib/data-fetchers';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Websites for Real Estate Agents',
-  description: 'A complete white-label digital platform built specifically for realtors. Your brand, your website, fully managed by you.',
+  description: 'A complete white-label digital platform built for realtors. Your brand, your domain, your website — fully managed by you. Property listings, lead capture, deal pipeline, and more.',
+  alternates: {
+    canonical: '/realtors',
+  },
+  openGraph: {
+    title: 'Websites for Real Estate Agents | daflash',
+    description: 'A complete white-label digital platform built for realtors. Your brand, your domain, fully yours.',
+    url: '/realtors',
+  },
 };
 
 export default async function RealtorsPage() {

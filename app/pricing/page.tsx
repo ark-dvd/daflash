@@ -1,13 +1,22 @@
 // app/pricing/page.tsx
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Check } from 'lucide-react';
 import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import { getPricingPlans, getSiteSettings } from '@/lib/data-fetchers';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Pricing',
-  description: 'Simple, transparent pricing for professional websites, email setup, and drone services. No hidden fees.',
+  description: 'Transparent pricing for professional websites, email setup, and drone services. Starting from $200. No hidden fees.',
+  alternates: {
+    canonical: '/pricing',
+  },
+  openGraph: {
+    title: 'Pricing | daflash',
+    description: 'Transparent pricing for professional websites, email setup, and drone services. Starting from $200.',
+    url: '/pricing',
+  },
 };
 
 export default async function PricingPage() {

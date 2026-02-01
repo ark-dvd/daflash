@@ -1,15 +1,24 @@
 // app/page.tsx
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight, Zap } from 'lucide-react';
 import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import LucideIcon from '@/components/public/LucideIcon';
+import StructuredData from '@/components/StructuredData';
+import { getLocalBusinessSchema, getWebSiteSchema } from '@/components/structured-data-schemas';
 import {
   getActiveServices,
   getFeaturedTestimonials,
   getActivePortfolioSites,
   getSiteSettings,
 } from '@/lib/data-fetchers';
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: '/',
+  },
+};
 
 export default async function HomePage() {
   const [services, testimonials, portfolio, settings] = await Promise.all([
@@ -21,6 +30,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <StructuredData data={[getLocalBusinessSchema(), getWebSiteSchema()]} />
       <Header />
 
       {/* ===== HERO ===== */}

@@ -1,13 +1,22 @@
 // app/contact/page.tsx
+import type { Metadata } from 'next';
 import { Mail, Phone, MapPin, Clock } from 'lucide-react';
 import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import ContactForm from '@/components/public/ContactForm';
 import { getSiteSettings } from '@/lib/data-fetchers';
 
-export const metadata = {
-  title: 'Contact',
-  description: 'Get in touch with daflash. Tell us about your business and we\'ll get back to you within 24 hours.',
+export const metadata: Metadata = {
+  title: 'Contact Us',
+  description: 'Get in touch with daflash. Tell us about your business and we\'ll get back to you within 24 hours with a plan to elevate your digital presence.',
+  alternates: {
+    canonical: '/contact',
+  },
+  openGraph: {
+    title: 'Contact Us | daflash',
+    description: 'Get in touch with daflash. We\'ll get back to you within 24 hours.',
+    url: '/contact',
+  },
 };
 
 export default async function ContactPage() {

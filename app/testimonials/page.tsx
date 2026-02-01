@@ -1,13 +1,24 @@
 // app/testimonials/page.tsx
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Star } from 'lucide-react';
 import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
+import StructuredData from '@/components/StructuredData';
+import { getTestimonialsSchema } from '@/components/structured-data-schemas';
 import { getActiveTestimonials, getSiteSettings } from '@/lib/data-fetchers';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Testimonials',
-  description: 'What our clients say about working with daflash. Real feedback from real businesses.',
+  description: 'What our clients say about working with daflash. Real reviews from real businesses we\'ve helped grow online.',
+  alternates: {
+    canonical: '/testimonials',
+  },
+  openGraph: {
+    title: 'Testimonials | daflash',
+    description: 'What our clients say about working with daflash. Real reviews from real businesses.',
+    url: '/testimonials',
+  },
 };
 
 export default async function TestimonialsPage() {
@@ -25,6 +36,11 @@ export default async function TestimonialsPage() {
 
   return (
     <>
+      <StructuredData data={getTestimonialsSchema(testimonials.map(t => ({
+        clientName: t.clientName,
+        quote: t.quote,
+        companyName: t.companyName,
+      })))} />
       <Header />
       <main className="pt-[70px]">
         {/* Page Header */}

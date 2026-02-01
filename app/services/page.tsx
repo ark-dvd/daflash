@@ -1,13 +1,24 @@
 // app/services/page.tsx
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import LucideIcon from '@/components/public/LucideIcon';
+import StructuredData from '@/components/StructuredData';
+import { getServicesPageSchema } from '@/components/structured-data-schemas';
 import { getActiveServices, getSiteSettings } from '@/lib/data-fetchers';
 
-export const metadata = {
-  title: 'Services',
-  description: 'Professional digital solutions - website design, domain registration, professional email, drone photography, and IT support.',
+export const metadata: Metadata = {
+  title: 'Our Services',
+  description: 'Professional digital solutions: website design, domain registration, email setup, logo design, drone photography, and IT support for small businesses.',
+  alternates: {
+    canonical: '/services',
+  },
+  openGraph: {
+    title: 'Our Services | daflash',
+    description: 'Professional digital solutions: website design, domain registration, email setup, logo design, drone photography, and IT support.',
+    url: '/services',
+  },
 };
 
 export default async function ServicesPage() {
@@ -18,6 +29,11 @@ export default async function ServicesPage() {
 
   return (
     <>
+      <StructuredData data={getServicesPageSchema(services.map(s => ({
+        name: s.name,
+        tagline: s.tagline,
+        description: s.description,
+      })))} />
       <Header />
       <main className="pt-[70px]">
         {/* Page Header */}

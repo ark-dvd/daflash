@@ -19,12 +19,37 @@ const jakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://daflash.com'),
   title: {
     default: 'daflash | Build Your Online Presence Fast',
     template: '%s | daflash',
   },
-  description:
-    'Professional digital solutions for small businesses. Domain, email, logo, and website setup in 24 hours.',
+  description: 'Professional digital solutions for small businesses. Domain, email, logo, and website setup in 24 hours. Plus ongoing IT support.',
+  keywords: ['website design', 'professional email setup', 'domain registration', 'logo design', 'IT support', 'drone photography', 'small business solutions'],
+  authors: [{ name: 'daflash' }],
+  creator: 'daflash',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://daflash.com',
+    siteName: 'daflash',
+    images: [
+      {
+        url: '/images/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'daflash - Build Your Online Presence Fast',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/images/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

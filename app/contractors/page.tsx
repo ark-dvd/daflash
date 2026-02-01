@@ -1,13 +1,22 @@
 // app/contractors/page.tsx
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import LucideIcon from '@/components/public/LucideIcon';
 import { getLandingPage, getSiteSettings } from '@/lib/data-fetchers';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Websites for Contractors',
-  description: 'A complete white-label digital platform built specifically for contractors. Your brand, your website, fully managed by you.',
+  description: 'A complete white-label digital platform built for contractors. Showcase your projects, capture leads, track jobs, and manage everything from your phone.',
+  alternates: {
+    canonical: '/contractors',
+  },
+  openGraph: {
+    title: 'Websites for Contractors | daflash',
+    description: 'A complete white-label digital platform built for contractors. Your brand, your domain, fully yours.',
+    url: '/contractors',
+  },
 };
 
 export default async function ContractorsPage() {
