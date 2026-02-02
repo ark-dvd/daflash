@@ -1,13 +1,19 @@
 // app/api/admin/pricing/route.ts
 import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/auth/middleware';
-import { sanityClient, sanityWriteClient } from '@/lib/sanity';
+import { sanityClient, sanityWriteClient, isSanityConfigured } from '@/lib/sanity';
 import { validate, pricingPlanSchema } from '@/lib/validations';
 import { jsonResponse, errorResponse } from '@/lib/api-helpers';
+import { demoPricingPlans } from '@/lib/demo-data';
 
 export async function GET(request: NextRequest) {
   const rejected = await requireAdmin(request);
   if (rejected) return rejected;
+
+  // Return demo data if Sanity is not configured
+  if (!isSanityConfigured()) {
+    return jsonResponse(demoPricingPlans.map(p => ({ ...p, _isDemo: true })));
+  }
 
   try {
     const plans = await sanityClient.fetch(
@@ -16,9 +22,14 @@ export async function GET(request: NextRequest) {
         features, badge, ctaText, ctaLink, order
       }`
     );
+    // If Sanity is empty, return demo data with _isDemo flag
+    if (plans.length === 0) {
+      return jsonResponse(demoPricingPlans.map(p => ({ ...p, _isDemo: true })));
+    }
     return jsonResponse(plans);
   } catch {
-    return errorResponse('Failed to fetch pricing plans', 500);
+    // On error, return demo data
+    return jsonResponse(demoPricingPlans.map(p => ({ ...p, _isDemo: true })));
   }
 }
 

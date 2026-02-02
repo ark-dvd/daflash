@@ -12,7 +12,10 @@
       "Bash(git remote add:*)",
       "Bash(git push:*)",
       "Bash(npm run dev:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git status:*)",
+      "Bash(powershell:*)",
+      "Bash(ls -la \"C:\\\\Users\\\\Arik Davidi\\\\Documents\\\\GitHub\\\\daflash\\\\public\\\\images\"\" 2>/dev/null || dir \"C:UsersArik DavidiDocumentsGitHubdaflashpublicimages \")"
     ]
   }
 }

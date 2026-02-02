@@ -1,6 +1,6 @@
 // components/public/Footer.tsx
 import Link from 'next/link';
-import { Zap, Mail, Instagram, Facebook, Linkedin, Youtube } from 'lucide-react';
+import { Mail, Instagram, Facebook, Linkedin, Youtube } from 'lucide-react';
 import type { SiteSettings } from '@/schemas';
 
 interface FooterProps {
@@ -25,12 +25,14 @@ export default function Footer({ settings }: FooterProps) {
     <footer className="bg-black py-16">
       <div className="max-w-[1200px] mx-auto px-6">
         <div className="flex flex-col items-center gap-8">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-1.5">
-            <Zap size={28} className="text-primary fill-primary" />
-            <span className="font-heading text-2xl font-bold text-white">
-              daflash
-            </span>
+          {/* Logo - using white logo image file */}
+          <Link href="/" className="flex items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/logo-white.svg"
+              alt="daflash"
+              className="h-10 w-auto"
+            />
           </Link>
 
           {/* Nav Links */}

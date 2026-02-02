@@ -1,13 +1,19 @@
 // app/api/admin/portfolio/route.ts
 import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/auth/middleware';
-import { sanityClient, sanityWriteClient } from '@/lib/sanity';
+import { sanityClient, sanityWriteClient, isSanityConfigured } from '@/lib/sanity';
 import { validate, portfolioSiteSchema } from '@/lib/validations';
 import { jsonResponse, errorResponse } from '@/lib/api-helpers';
+import { demoPortfolioSites } from '@/lib/demo-data';
 
 export async function GET(request: NextRequest) {
   const rejected = await requireAdmin(request);
   if (rejected) return rejected;
+
+  // Return demo data if Sanity is not configured
+  if (!isSanityConfigured()) {
+    return jsonResponse(demoPortfolioSites.map(s => ({ ...s, _isDemo: true })));
+  }
 
   try {
     const sites = await sanityClient.fetch(
@@ -16,9 +22,14 @@ export async function GET(request: NextRequest) {
         websiteUrl, order, isActive
       }`
     );
+    // If Sanity is empty, return demo data with _isDemo flag
+    if (sites.length === 0) {
+      return jsonResponse(demoPortfolioSites.map(s => ({ ...s, _isDemo: true })));
+    }
     return jsonResponse(sites);
   } catch {
-    return errorResponse('Failed to fetch portfolio sites', 500);
+    // On error, return demo data
+    return jsonResponse(demoPortfolioSites.map(s => ({ ...s, _isDemo: true })));
   }
 }
 

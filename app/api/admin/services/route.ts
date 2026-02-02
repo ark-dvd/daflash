@@ -1,13 +1,19 @@
 // app/api/admin/services/route.ts
 import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/auth/middleware';
-import { sanityClient, sanityWriteClient } from '@/lib/sanity';
+import { sanityClient, sanityWriteClient, isSanityConfigured } from '@/lib/sanity';
 import { validate, serviceSchema } from '@/lib/validations';
 import { jsonResponse, errorResponse } from '@/lib/api-helpers';
+import { demoServices } from '@/lib/demo-data';
 
 export async function GET(request: NextRequest) {
   const rejected = await requireAdmin(request);
   if (rejected) return rejected;
+
+  // Return demo data if Sanity is not configured
+  if (!isSanityConfigured()) {
+    return jsonResponse(demoServices.map(s => ({ ...s, _isDemo: true })));
+  }
 
   try {
     const services = await sanityClient.fetch(
@@ -15,9 +21,14 @@ export async function GET(request: NextRequest) {
         _id, _type, name, slug, icon, tagline, description, highlights, order, isActive
       }`
     );
+    // If Sanity is empty, return demo data with _isDemo flag
+    if (services.length === 0) {
+      return jsonResponse(demoServices.map(s => ({ ...s, _isDemo: true })));
+    }
     return jsonResponse(services);
   } catch {
-    return errorResponse('Failed to fetch services', 500);
+    // On error, return demo data
+    return jsonResponse(demoServices.map(s => ({ ...s, _isDemo: true })));
   }
 }
 

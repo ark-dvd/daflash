@@ -1,13 +1,19 @@
 // app/api/admin/testimonials/route.ts
 import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/auth/middleware';
-import { sanityClient, sanityWriteClient } from '@/lib/sanity';
+import { sanityClient, sanityWriteClient, isSanityConfigured } from '@/lib/sanity';
 import { validate, testimonialSchema } from '@/lib/validations';
 import { jsonResponse, errorResponse } from '@/lib/api-helpers';
+import { demoTestimonials } from '@/lib/demo-data';
 
 export async function GET(request: NextRequest) {
   const rejected = await requireAdmin(request);
   if (rejected) return rejected;
+
+  // Return demo data if Sanity is not configured
+  if (!isSanityConfigured()) {
+    return jsonResponse(demoTestimonials.map(t => ({ ...t, _isDemo: true })));
+  }
 
   try {
     const testimonials = await sanityClient.fetch(
@@ -16,9 +22,14 @@ export async function GET(request: NextRequest) {
         isFeatured, order, isActive
       }`
     );
+    // If Sanity is empty, return demo data with _isDemo flag
+    if (testimonials.length === 0) {
+      return jsonResponse(demoTestimonials.map(t => ({ ...t, _isDemo: true })));
+    }
     return jsonResponse(testimonials);
   } catch {
-    return errorResponse('Failed to fetch testimonials', 500);
+    // On error, return demo data
+    return jsonResponse(demoTestimonials.map(t => ({ ...t, _isDemo: true })));
   }
 }
 

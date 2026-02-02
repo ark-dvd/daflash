@@ -1,5 +1,11 @@
 // app/admin/page.tsx
 import { sanityClient, isSanityConfigured } from '@/lib/sanity';
+import {
+  demoServices,
+  demoPortfolioSites,
+  demoClients,
+  demoQuotes,
+} from '@/lib/demo-data';
 import DashboardStats from '@/components/admin/DashboardStats';
 import DashboardQuickActions from '@/components/admin/DashboardQuickActions';
 import DashboardRecentActivity from '@/components/admin/DashboardRecentActivity';
@@ -11,12 +17,13 @@ interface AdminPageProps {
 }
 
 async function getStats() {
+  // Use demo data counts if Sanity is not configured
   if (!isSanityConfigured()) {
     return {
-      services: 3,
-      portfolio: 8,
-      clients: 5,
-      quotes: 2,
+      services: demoServices.length,
+      portfolio: demoPortfolioSites.filter(s => s.isActive).length,
+      clients: demoClients.length,
+      quotes: demoQuotes.filter(q => q.status === 'Sent').length,
     };
   }
 
@@ -28,13 +35,24 @@ async function getStats() {
       sanityClient.fetch<number>(`count(*[_type == "quote" && status == "sent"])`),
     ]);
 
+    // If Sanity is empty, return demo data counts
+    if (services === 0 && portfolio === 0 && clients === 0) {
+      return {
+        services: demoServices.length,
+        portfolio: demoPortfolioSites.filter(s => s.isActive).length,
+        clients: demoClients.length,
+        quotes: demoQuotes.filter(q => q.status === 'Sent').length,
+      };
+    }
+
     return { services, portfolio, clients, quotes };
   } catch {
+    // On error, return demo data counts
     return {
-      services: 0,
-      portfolio: 0,
-      clients: 0,
-      quotes: 0,
+      services: demoServices.length,
+      portfolio: demoPortfolioSites.filter(s => s.isActive).length,
+      clients: demoClients.length,
+      quotes: demoQuotes.filter(q => q.status === 'Sent').length,
     };
   }
 }
