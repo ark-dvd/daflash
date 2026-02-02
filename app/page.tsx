@@ -61,13 +61,12 @@ export default async function HomePage() {
           </div>
 
           {/* Visual - Custom lightning bolt SVG from daflash logo */}
-          {/* TWO-WRAPPER APPROACH: Parent has scaleX(-1), Child has animation */}
           <div className="flex justify-center items-center order-first md:order-last">
             {/* Container: positions the bolt, applies offset on desktop */}
             <div className="relative w-[250px] h-[250px] md:w-[400px] md:h-[400px] md:ml-16 flex items-center justify-center">
-              {/* FLIP WRAPPER: scaleX(-1) lives here - NO animation on this element */}
-              <div style={{ transform: 'scaleX(-1)' }}>
-                {/* Desktop size - animation lives on the SVG, NOT the flip */}
+              {/* Bolt wrapper - original SVG has correct orientation (top-right to bottom-left) */}
+              <div>
+                {/* Desktop size */}
                 <svg
                   className="hidden md:block w-[380px] h-[380px] drop-shadow-[0_20px_40px_rgba(254,85,87,0.3)] animate-float"
                   viewBox="0 0 100 100"
