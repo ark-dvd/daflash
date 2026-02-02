@@ -24,7 +24,7 @@ export const sanityWriteClient = createClient({
   dataset,
   apiVersion,
   useCdn: false,
-  token: process.env.SANITY_API_TOKEN,
+  token: process.env.SANITY_API_WRITE_TOKEN,
 });
 
 // CRITICAL: Only check NEXT_PUBLIC_SANITY_PROJECT_ID (Lesson 2)

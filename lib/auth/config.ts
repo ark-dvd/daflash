@@ -5,14 +5,38 @@
 import { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 
-// Whitelist of allowed admin emails (stored lowercase)
-// Only these Google accounts can access /admin
-// IMPORTANT: All emails stored lowercase — comparison is case-insensitive
-const ALLOWED_EMAILS: string[] = [
-  // Add your admin email(s) here (always lowercase):
-  // 'admin@daflash.com',
-  // 'your.email@gmail.com',
-];
+/**
+ * Get allowed admin emails from environment variable.
+ * SECURITY: If ADMIN_ALLOWED_EMAILS is not set or empty, NO ONE can sign in.
+ * This is a security-first approach — never default to "allow all".
+ */
+function getAllowedEmails(): string[] {
+  const envValue = process.env.ADMIN_ALLOWED_EMAILS;
+  if (!envValue || envValue.trim() === '') {
+    return [];
+  }
+  return envValue.split(',').map((email) => email.trim().toLowerCase());
+}
+
+// Production startup validation
+if (process.env.NODE_ENV === 'production') {
+  const nextAuthUrl = process.env.NEXTAUTH_URL;
+  if (!nextAuthUrl || nextAuthUrl.includes('localhost')) {
+    console.error(
+      '[AUTH ERROR] NEXTAUTH_URL is not set or contains localhost in production. ' +
+      'Set NEXTAUTH_URL=https://daflash.com in your environment variables.'
+    );
+  }
+
+  const allowedEmails = process.env.ADMIN_ALLOWED_EMAILS;
+  if (!allowedEmails || allowedEmails.trim() === '') {
+    console.error(
+      '[AUTH ERROR] ADMIN_ALLOWED_EMAILS is not set. ' +
+      'No one will be able to access the admin panel. ' +
+      'Set ADMIN_ALLOWED_EMAILS=email@example.com in your environment variables.'
+    );
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -44,15 +68,31 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    // Check if the user's email is in the whitelist (case-insensitive)
+    // SECURITY: Check if the user's email is in the whitelist
+    // If ADMIN_ALLOWED_EMAILS is empty or not set, DENY ALL sign-ins
     async signIn({ user }) {
       if (!user.email) return false;
-      // If no emails are whitelisted, allow all (development convenience)
-      if (ALLOWED_EMAILS.length === 0) return true;
+
+      const allowedEmails = getAllowedEmails();
+
+      // SECURITY: If no emails are configured, DENY sign-in (not allow)
+      if (allowedEmails.length === 0) {
+        console.warn(
+          `[AUTH] Sign-in denied for ${user.email}: ADMIN_ALLOWED_EMAILS is not configured`
+        );
+        return false;
+      }
+
       // Case-insensitive comparison
-      return ALLOWED_EMAILS.some(
-        (allowed) => allowed.toLowerCase() === user.email?.toLowerCase()
-      );
+      const userEmail = user.email.toLowerCase();
+      const isAllowed = allowedEmails.includes(userEmail);
+
+      if (!isAllowed) {
+        console.warn(`[AUTH] Sign-in denied for ${user.email}: not in allowed list`);
+        return false;
+      }
+
+      return true;
     },
 
     // Include email in the JWT token

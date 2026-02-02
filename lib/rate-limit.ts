@@ -1,4 +1,7 @@
 // lib/rate-limit.ts
+// In-memory rate limiter for API protection
+
+import { NextResponse } from 'next/server';
 
 interface RateLimitEntry {
   count: number;
@@ -117,4 +120,68 @@ export function getClientIP(request: Request): string {
 
   // Fallback
   return 'unknown';
+}
+
+// =============================================================================
+// Pre-configured rate limiters for different use cases
+// =============================================================================
+
+/**
+ * Rate limit configuration for admin API routes
+ * 60 requests per minute per IP
+ */
+export const ADMIN_RATE_LIMIT = {
+  windowMs: 60000, // 1 minute
+  maxRequests: 60,
+};
+
+/**
+ * Rate limit configuration for auth-related endpoints
+ * 10 requests per minute per IP (stricter to prevent brute force)
+ */
+export const AUTH_RATE_LIMIT = {
+  windowMs: 60000, // 1 minute
+  maxRequests: 10,
+};
+
+/**
+ * Rate limit configuration for file uploads
+ * 20 uploads per minute per IP
+ */
+export const UPLOAD_RATE_LIMIT = {
+  windowMs: 60000, // 1 minute
+  maxRequests: 20,
+};
+
+/**
+ * Check rate limit and return 429 response if exceeded
+ * Returns null if request is allowed, NextResponse if rate limited
+ */
+export function checkRateLimit(
+  request: Request,
+  prefix: string,
+  options: RateLimitOptions = ADMIN_RATE_LIMIT
+): NextResponse | null {
+  const ip = getClientIP(request);
+  const identifier = `${prefix}:${ip}`;
+  const result = rateLimit(identifier, options);
+
+  if (!result.success) {
+    return NextResponse.json(
+      {
+        error: 'Too many requests',
+        retryAfter: result.resetIn,
+      },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(result.resetIn),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': String(result.resetIn),
+        },
+      }
+    );
+  }
+
+  return null;
 }
