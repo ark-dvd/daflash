@@ -60,10 +60,10 @@ export default async function HomePage() {
 
           {/* Visual - Custom lightning bolt SVG from daflash logo */}
           <div className="flex justify-center items-center order-first md:order-last">
-            <div className="relative w-[250px] h-[250px] md:w-[400px] md:h-[400px] flex items-center justify-center animate-float">
-              {/* Desktop size */}
+            <div className="relative w-[250px] h-[250px] md:w-[450px] md:h-[450px] flex items-center justify-center">
+              {/* Desktop size - 380px with scaleX(-1) mirroring */}
               <svg
-                className="hidden md:block w-[280px] h-[280px] drop-shadow-[0_20px_40px_rgba(254,85,87,0.3)]"
+                className="hidden md:block w-[380px] h-[380px] drop-shadow-[0_20px_40px_rgba(254,85,87,0.3)] animate-float"
                 viewBox="0 0 100 100"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -76,7 +76,7 @@ export default async function HomePage() {
               </svg>
               {/* Mobile size */}
               <svg
-                className="md:hidden w-[160px] h-[160px] drop-shadow-[0_20px_40px_rgba(254,85,87,0.3)]"
+                className="md:hidden w-[160px] h-[160px] drop-shadow-[0_20px_40px_rgba(254,85,87,0.3)] animate-float"
                 viewBox="0 0 100 100"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"

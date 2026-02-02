@@ -1,9 +1,10 @@
 // app/api/admin/landing-pages/[pageId]/route.ts
 import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/auth/middleware';
-import { sanityClient, sanityWriteClient } from '@/lib/sanity';
+import { sanityClient, sanityWriteClient, isSanityConfigured } from '@/lib/sanity';
 import { validate, landingPageSchema } from '@/lib/validations';
 import { jsonResponse, errorResponse } from '@/lib/api-helpers';
+import { demoRealtorsPage, demoContractorsPage } from '@/lib/demo-data';
 
 export async function GET(
   request: NextRequest,
@@ -17,6 +18,14 @@ export async function GET(
     return errorResponse('Invalid pageId. Must be "realtors" or "contractors"', 400);
   }
 
+  // Get demo data based on pageId
+  const demoPage = pageId === 'realtors' ? demoRealtorsPage : demoContractorsPage;
+
+  // Return demo data if Sanity is not configured
+  if (!isSanityConfigured()) {
+    return jsonResponse({ ...demoPage, _isDemo: true });
+  }
+
   try {
     const page = await sanityClient.fetch(
       `*[_type == "landingPage" && pageId == $pageId][0] {
@@ -27,9 +36,16 @@ export async function GET(
       }`,
       { pageId }
     );
+
+    // If Sanity returns null, return demo data
+    if (!page) {
+      return jsonResponse({ ...demoPage, _isDemo: true });
+    }
+
     return jsonResponse(page);
   } catch {
-    return errorResponse('Failed to fetch landing page', 500);
+    // On error, return demo data
+    return jsonResponse({ ...demoPage, _isDemo: true });
   }
 }
 

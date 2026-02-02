@@ -13,7 +13,6 @@ import {
   Receipt,
   Settings,
   X,
-  Zap,
 } from 'lucide-react';
 
 const navItems = [
@@ -68,13 +67,13 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       >
         {/* Header */}
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-800">
-          <Link href="/admin" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
-              <Zap className="w-5 h-5 text-primary" />
-            </div>
-            <span className="font-heading font-bold text-xl text-white">
-              daflash
-            </span>
+          <Link href="/admin" className="flex items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/logo-white.svg"
+              alt="daflash"
+              className="h-8 w-auto"
+            />
           </Link>
           <button
             onClick={onClose}
