@@ -59,33 +59,37 @@ export default async function HomePage() {
           </div>
 
           {/* Visual - Custom lightning bolt SVG from daflash logo */}
+          {/* TWO-WRAPPER APPROACH: Parent has scaleX(-1), Child has animation */}
           <div className="flex justify-center items-center order-first md:order-last">
-            {/* Desktop: shift right with ml-16, Mobile: centered */}
+            {/* Container: positions the bolt, applies offset on desktop */}
             <div className="relative w-[250px] h-[250px] md:w-[400px] md:h-[400px] md:ml-16 flex items-center justify-center">
-              {/* Desktop size - 380px with scaleX(-1) mirroring preserved in animation */}
-              <svg
-                className="hidden md:block w-[380px] h-[380px] drop-shadow-[0_20px_40px_rgba(254,85,87,0.3)] animate-float-mirrored"
-                viewBox="0 0 100 100"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <polygon
-                  points="68.2,36.6 95.1,9.1 50.6,38.2 63.5,44.4 22.4,73.9 12.1,67.3 5.1,92.9 46.6,89.7 33,80.7 83.9,43.6"
-                  fill="#fe5557"
-                />
-              </svg>
-              {/* Mobile size - centered, mirrored animation */}
-              <svg
-                className="md:hidden w-[160px] h-[160px] drop-shadow-[0_20px_40px_rgba(254,85,87,0.3)] animate-float-mirrored"
-                viewBox="0 0 100 100"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <polygon
-                  points="68.2,36.6 95.1,9.1 50.6,38.2 63.5,44.4 22.4,73.9 12.1,67.3 5.1,92.9 46.6,89.7 33,80.7 83.9,43.6"
-                  fill="#fe5557"
-                />
-              </svg>
+              {/* FLIP WRAPPER: scaleX(-1) lives here - NO animation on this element */}
+              <div style={{ transform: 'scaleX(-1)' }}>
+                {/* Desktop size - animation lives on the SVG, NOT the flip */}
+                <svg
+                  className="hidden md:block w-[380px] h-[380px] drop-shadow-[0_20px_40px_rgba(254,85,87,0.3)] animate-float"
+                  viewBox="0 0 100 100"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <polygon
+                    points="68.2,36.6 95.1,9.1 50.6,38.2 63.5,44.4 22.4,73.9 12.1,67.3 5.1,92.9 46.6,89.7 33,80.7 83.9,43.6"
+                    fill="#fe5557"
+                  />
+                </svg>
+                {/* Mobile size */}
+                <svg
+                  className="md:hidden w-[160px] h-[160px] drop-shadow-[0_20px_40px_rgba(254,85,87,0.3)] animate-float"
+                  viewBox="0 0 100 100"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <polygon
+                    points="68.2,36.6 95.1,9.1 50.6,38.2 63.5,44.4 22.4,73.9 12.1,67.3 5.1,92.9 46.6,89.7 33,80.7 83.9,43.6"
+                    fill="#fe5557"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
         </div>
