@@ -39,10 +39,10 @@ export const serviceSchema = z.object({
 export const pricingPlanSchema = z.object({
   name: z.string().min(1, 'Plan name is required'),
   price: z.number().min(0),
-  originalPrice: z.number().optional(),
+  originalPrice: z.number().nullable().optional(),
   billingFrequency: z.enum(['one-time', 'monthly', 'annual']).default('one-time'),
   features: z.array(z.string()).default([]),
-  badge: z.string().optional(),
+  badge: z.string().nullable().optional(),
   ctaText: z.string().default('Get Started'),
   ctaLink: z.string().default('/contact'),
   order: z.number().default(0),
@@ -53,7 +53,7 @@ export const pricingPlanSchema = z.object({
 // ============================================================
 export const portfolioSiteSchema = z.object({
   clientName: z.string().min(1, 'Client name is required'),
-  logo: z.string().optional(), // Sanity asset ID — uploaded separately
+  logo: z.string().nullable().optional(), // Sanity asset ID — uploaded separately
   websiteUrl: z.string().url('Must be a valid URL').or(z.literal('')).default(''),
   order: z.number().default(0),
   isActive: z.boolean().default(true),
@@ -79,14 +79,14 @@ export const landingPageFeatureSchema = z.object({
   icon: z.string().default('Star'),
   title: z.string().min(1),
   description: z.string().default(''),
-  screenshot: z.string().optional(), // Sanity asset ID
+  screenshot: z.string().nullable().optional(), // Sanity asset ID
 });
 
 export const landingPageSchema = z.object({
   pageId: z.enum(['realtors', 'contractors']),
   heroHeadline: z.string().default(''),
   heroSubtitle: z.string().default(''),
-  heroImage: z.string().optional(), // Sanity asset ID
+  heroImage: z.string().nullable().optional(), // Sanity asset ID
   features: z.array(landingPageFeatureSchema).default([]),
   whiteLabelText: z.string().default(''),
   ctaText: z.string().default('Contact for Quote'),
@@ -153,7 +153,7 @@ export const quoteSchema = z.object({
 // INVOICE
 // ============================================================
 export const invoiceSchema = z.object({
-  relatedQuote: z.string().optional(), // Sanity reference ID
+  relatedQuote: z.string().nullable().optional(), // Sanity reference ID
   client: z.string().min(1, 'Client is required'), // Sanity reference ID
   lineItems: z.array(lineItemSchema).default([]),
   subtotal: z.number().default(0),
@@ -176,7 +176,7 @@ export const siteSettingsSchema = z.object({
   heroSubtitle: z.string().default(''),
   heroCtaText: z.string().default('Get Started'),
   heroCtaLink: z.string().default('/contact'),
-  heroImage: z.string().optional(),
+  heroImage: z.string().nullable().optional(),
   aboutHeadline: z.string().default(''),
   aboutText: z.string().default(''),
   aboutStats: z
@@ -194,8 +194,8 @@ export const siteSettingsSchema = z.object({
   officeHours: z.string().default(''),
   companyName: z.string().default('daflash'),
   companySpecialty: z.string().default(''),
-  logo: z.string().optional(),
-  favicon: z.string().optional(),
+  logo: z.string().nullable().optional(),
+  favicon: z.string().nullable().optional(),
   socialInstagram: z.string().default(''),
   socialFacebook: z.string().default(''),
   socialLinkedin: z.string().default(''),
