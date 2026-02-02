@@ -27,8 +27,9 @@ export default function AdminTopBar({ onMenuClick }: AdminTopBarProps) {
         </button>
 
         {/* Logo - visible on mobile only (desktop has sidebar) */}
-        <div className="lg:hidden font-heading font-bold text-xl text-gray-900">
-          daflash
+        <div className="lg:hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/logo-color.svg" alt="daflash" className="h-8 w-auto" />
         </div>
 
         {/* Spacer for desktop */}
