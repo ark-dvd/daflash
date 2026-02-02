@@ -4,6 +4,7 @@ import DashboardStats from '@/components/admin/DashboardStats';
 import DashboardQuickActions from '@/components/admin/DashboardQuickActions';
 import DashboardRecentActivity from '@/components/admin/DashboardRecentActivity';
 import AdminTabRouter from '@/components/admin/AdminTabRouter';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 interface AdminPageProps {
   searchParams: Promise<{ tab?: string }>;
@@ -108,9 +109,13 @@ export default async function AdminDashboard({ searchParams }: AdminPageProps) {
   const params = await searchParams;
   const activeTab = params?.tab;
 
-  // If a tab is active, render the tab router (client component)
+  // If a tab is active, render the tab router (client component) wrapped in ErrorBoundary
   if (activeTab) {
-    return <AdminTabRouter />;
+    return (
+      <ErrorBoundary>
+        <AdminTabRouter />
+      </ErrorBoundary>
+    );
   }
 
   // Dashboard — fetch all data in parallel
@@ -131,13 +136,19 @@ export default async function AdminDashboard({ searchParams }: AdminPageProps) {
         </p>
       </div>
 
-      {/* Stats grid */}
-      <DashboardStats stats={stats} />
+      {/* Stats grid wrapped in ErrorBoundary */}
+      <ErrorBoundary>
+        <DashboardStats stats={stats} />
+      </ErrorBoundary>
 
       {/* Two column layout on desktop */}
       <div className="grid lg:grid-cols-2 gap-6">
-        <DashboardQuickActions />
-        <DashboardRecentActivity activities={activities} />
+        <ErrorBoundary>
+          <DashboardQuickActions />
+        </ErrorBoundary>
+        <ErrorBoundary>
+          <DashboardRecentActivity activities={activities} />
+        </ErrorBoundary>
       </div>
     </div>
   );

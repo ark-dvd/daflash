@@ -3,11 +3,29 @@ import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/auth/middleware';
 import { sanityWriteClient } from '@/lib/sanity';
 import { jsonResponse, errorResponse } from '@/lib/api-helpers';
+import { rateLimit, getClientIP } from '@/lib/rate-limit';
 
 // Max file size: 5MB
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
+// Rate limit: 20 uploads per minute per IP
+const UPLOAD_RATE_LIMIT = {
+  windowMs: 60000,
+  maxRequests: 20,
+};
+
 export async function POST(request: NextRequest) {
+  // Rate limiting check first (before auth to prevent auth bypass DoS)
+  const clientIP = getClientIP(request);
+  const rateLimitResult = rateLimit(`upload:${clientIP}`, UPLOAD_RATE_LIMIT);
+
+  if (!rateLimitResult.success) {
+    return errorResponse(
+      `Too many uploads. Please wait ${rateLimitResult.resetIn} seconds.`,
+      429
+    );
+  }
+
   const rejected = await requireAdmin(request);
   if (rejected) return rejected;
 
