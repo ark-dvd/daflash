@@ -55,9 +55,18 @@ export async function DELETE(
   const rejected = await requireAdmin(request);
   if (rejected) return rejected;
 
+  // Demo items can't be deleted from Sanity (they don't exist there)
+  if (params.id.startsWith('demo-')) {
+    return jsonResponse({ deleted: true });
+  }
+
+  if (!isSanityConfigured()) {
+    return errorResponse('Sanity is not configured. Cannot delete.', 400);
+  }
+
   try {
     await sanityWriteClient.delete(params.id);
-    return jsonResponse({ success: true });
+    return jsonResponse({ deleted: true });
   } catch {
     return errorResponse('Failed to delete service', 500);
   }

@@ -1,7 +1,7 @@
 // app/api/admin/catalog/[id]/route.ts
 import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/auth/middleware';
-import { sanityWriteClient } from '@/lib/sanity';
+import { sanityWriteClient, isSanityConfigured } from '@/lib/sanity';
 import { validate, catalogItemSchema } from '@/lib/validations';
 import { jsonResponse, errorResponse } from '@/lib/api-helpers';
 
@@ -12,9 +12,23 @@ export async function PUT(
   const rejected = await requireAdmin(request);
   if (rejected) return rejected;
 
+  if (!isSanityConfigured()) {
+    return errorResponse('Sanity is not configured. Cannot save changes.', 400);
+  }
+
   try {
     const body = await request.json();
     const data = validate(catalogItemSchema, body);
+
+    // Check if this is a demo item (not in Sanity)
+    if (params.id.startsWith('demo-')) {
+      const result = await sanityWriteClient.create({
+        _type: 'catalogItem' as const,
+        ...data,
+      });
+      return jsonResponse(result);
+    }
+
     const result = await sanityWriteClient
       .patch(params.id)
       .set(data)
@@ -35,9 +49,17 @@ export async function DELETE(
   const rejected = await requireAdmin(request);
   if (rejected) return rejected;
 
+  if (params.id.startsWith('demo-')) {
+    return jsonResponse({ deleted: true });
+  }
+
+  if (!isSanityConfigured()) {
+    return errorResponse('Sanity is not configured. Cannot delete.', 400);
+  }
+
   try {
     await sanityWriteClient.delete(params.id);
-    return jsonResponse({ success: true });
+    return jsonResponse({ deleted: true });
   } catch {
     return errorResponse('Failed to delete catalog item', 500);
   }

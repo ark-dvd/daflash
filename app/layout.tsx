@@ -28,6 +28,10 @@ export const metadata: Metadata = {
   keywords: ['website design', 'professional email setup', 'domain registration', 'logo design', 'IT support', 'drone photography', 'small business solutions'],
   authors: [{ name: 'daflash' }],
   creator: 'daflash',
+  icons: {
+    icon: '/images/logo-color.svg',
+    apple: '/images/logo-color.svg',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
