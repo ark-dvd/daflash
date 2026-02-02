@@ -36,7 +36,7 @@ export const authOptions: NextAuthOptions = {
       name: 'next-auth.session-token',
       options: {
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: 'lax' as const,
         path: '/',
         secure: process.env.NODE_ENV === 'production',
       },
@@ -49,7 +49,10 @@ export const authOptions: NextAuthOptions = {
       if (!user.email) return false;
       // If no emails are whitelisted, allow all (development convenience)
       if (ALLOWED_EMAILS.length === 0) return true;
-      return ALLOWED_EMAILS.includes(user.email.toLowerCase());
+      // Case-insensitive comparison
+      return ALLOWED_EMAILS.some(
+        (allowed) => allowed.toLowerCase() === user.email?.toLowerCase()
+      );
     },
 
     // Include email in the JWT token
@@ -73,8 +76,6 @@ export const authOptions: NextAuthOptions = {
     },
   },
 
-  pages: {
-    signIn: '/admin',
-    error: '/admin',
-  },
+  // DO NOT set pages.signIn to /admin - this causes redirect loops!
+  // Let NextAuth handle its own sign-in flow at /api/auth/signin
 };

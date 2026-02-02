@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 40">
+  <!-- Lightning bolt icon -->
+  <svg x="0" y="2" width="36" height="36" viewBox="0 0 100 100">
+    <polygon points="68.2,36.6 95.1,9.1 50.6,38.2 63.5,44.4 22.4,73.9 12.1,67.3 5.1,92.9 46.6,89.7 33,80.7 83.9,43.6" fill="#fe5557"/>
+  </svg>
+  <!-- daflash text -->
+  <text x="42" y="29" font-family="'Outfit', sans-serif" font-weight="700" font-size="24" fill="#ffffff">daflash</text>
+</svg>

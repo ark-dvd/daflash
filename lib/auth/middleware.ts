@@ -42,14 +42,17 @@ export async function requireAdmin(
 
     // Check email whitelist (skip if no emails configured)
     // Case-insensitive comparison — 'Arik@daflash.com' matches 'arik@daflash.com'
-    if (
-      ALLOWED_EMAILS.length > 0 &&
-      !ALLOWED_EMAILS.includes((token.email as string).toLowerCase())
-    ) {
-      return NextResponse.json(
-        { error: 'Access denied' },
-        { status: 403 }
+    const userEmail = (token.email as string).toLowerCase();
+    if (ALLOWED_EMAILS.length > 0) {
+      const isAllowed = ALLOWED_EMAILS.some(
+        (allowed) => allowed.toLowerCase() === userEmail
       );
+      if (!isAllowed) {
+        return NextResponse.json(
+          { error: 'Access denied' },
+          { status: 403 }
+        );
+      }
     }
 
     return null; // Authenticated — proceed

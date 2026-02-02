@@ -56,14 +56,14 @@ export default async function TestimonialsPage() {
           </div>
         </section>
 
-        {/* Testimonials List */}
+        {/* Testimonials Grid - 2 columns on desktop */}
         <section className="py-24">
-          <div className="max-w-[800px] mx-auto px-6">
-            <div className="flex flex-col gap-8">
+          <div className="max-w-[1000px] mx-auto px-6">
+            <div className="grid md:grid-cols-2 gap-8">
               {sorted.map((t) => (
                 <div
                   key={t._id}
-                  className="relative bg-white border border-black/[0.08] rounded-2xl p-8 md:p-10 transition-all hover:shadow-md"
+                  className="relative bg-white border border-black/[0.08] rounded-2xl p-8 transition-all hover:shadow-md"
                 >
                   {t.isFeatured && (
                     <span className="absolute top-4 right-4 flex items-center gap-1 bg-primary-light text-primary text-xs font-heading font-bold px-3 py-1 rounded-full">

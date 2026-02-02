@@ -1,7 +1,7 @@
 // app/page.tsx
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, Zap } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import LucideIcon from '@/components/public/LucideIcon';
@@ -42,29 +42,8 @@ export default async function HomePage() {
           {/* Text */}
           <div className="md:text-left text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-[3.75rem] font-heading font-extrabold tracking-tight mb-6 leading-[1.1]">
-              {settings.heroHeadline.split('.').map((part, i, arr) => {
-                const text = part.trim();
-                if (!text) return null;
-                // Last meaningful segment gets the red highlight
-                if (i === arr.length - 2 && arr[arr.length - 1].trim() === '') {
-                  return (
-                    <span key={i}>
-                      <span className="text-primary">{text}.</span>
-                    </span>
-                  );
-                }
-                // "In 24 Hours" - the last non-empty segment
-                const isLast = i === arr.filter(p => p.trim()).length - 1;
-                if (isLast) {
-                  return (
-                    <span key={i}>
-                      <br className="hidden sm:block" />
-                      <span className="text-primary">{text}.</span>
-                    </span>
-                  );
-                }
-                return <span key={i}>{text}. </span>;
-              })}
+              Domain. Email. Website.<br />
+              <span className="text-primary">In 24 Hours.</span>
             </h1>
             <p className="text-lg text-df-gray mb-9 max-w-[480px] md:mx-0 mx-auto">
               {settings.heroSubtitle}
@@ -79,19 +58,35 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Visual - Lightning bolt */}
+          {/* Visual - Custom lightning bolt SVG from daflash logo */}
           <div className="flex justify-center items-center order-first md:order-last">
-            <div className="relative w-[250px] h-[250px] md:w-[400px] md:h-[400px] flex items-center justify-center">
-              <Zap
-                size={280}
-                className="text-primary fill-primary drop-shadow-[0_20px_40px_rgba(254,85,87,0.3)] animate-float hidden md:block"
-                strokeWidth={0}
-              />
-              <Zap
-                size={160}
-                className="text-primary fill-primary drop-shadow-[0_20px_40px_rgba(254,85,87,0.3)] animate-float md:hidden"
-                strokeWidth={0}
-              />
+            <div className="relative w-[250px] h-[250px] md:w-[400px] md:h-[400px] flex items-center justify-center animate-float">
+              {/* Desktop size */}
+              <svg
+                className="hidden md:block w-[280px] h-[280px] drop-shadow-[0_20px_40px_rgba(254,85,87,0.3)]"
+                viewBox="0 0 100 100"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                style={{ transform: 'scaleX(-1)' }}
+              >
+                <polygon
+                  points="68.2,36.6 95.1,9.1 50.6,38.2 63.5,44.4 22.4,73.9 12.1,67.3 5.1,92.9 46.6,89.7 33,80.7 83.9,43.6"
+                  fill="#fe5557"
+                />
+              </svg>
+              {/* Mobile size */}
+              <svg
+                className="md:hidden w-[160px] h-[160px] drop-shadow-[0_20px_40px_rgba(254,85,87,0.3)]"
+                viewBox="0 0 100 100"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                style={{ transform: 'scaleX(-1)' }}
+              >
+                <polygon
+                  points="68.2,36.6 95.1,9.1 50.6,38.2 63.5,44.4 22.4,73.9 12.1,67.3 5.1,92.9 46.6,89.7 33,80.7 83.9,43.6"
+                  fill="#fe5557"
+                />
+              </svg>
             </div>
           </div>
         </div>
