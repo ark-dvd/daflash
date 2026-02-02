@@ -1,7 +1,7 @@
 // app/api/admin/services/[id]/route.ts
 import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/auth/middleware';
-import { sanityWriteClient } from '@/lib/sanity';
+import { sanityWriteClient, isSanityConfigured } from '@/lib/sanity';
 import { validate, serviceSchema } from '@/lib/validations';
 import { jsonResponse, errorResponse } from '@/lib/api-helpers';
 
@@ -12,12 +12,29 @@ export async function PUT(
   const rejected = await requireAdmin(request);
   if (rejected) return rejected;
 
+  // Check if Sanity is configured for write operations
+  if (!isSanityConfigured()) {
+    return errorResponse('Sanity is not configured. Cannot save changes.', 400);
+  }
+
   try {
     const body = await request.json();
     const data = validate(serviceSchema, body);
 
     const slug = data.slug || data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
+    // Check if this is a demo item (not in Sanity)
+    if (params.id.startsWith('demo-')) {
+      // Create a new real document in Sanity instead of patching
+      const result = await sanityWriteClient.create({
+        _type: 'service' as const,
+        ...data,
+        slug,
+      });
+      return jsonResponse(result);
+    }
+
+    // Normal update for real Sanity documents
     const result = await sanityWriteClient
       .patch(params.id)
       .set({ ...data, slug })

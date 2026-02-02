@@ -4,7 +4,6 @@
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Zap } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const { data: session, status } = useSession();
@@ -26,7 +25,8 @@ export default function AdminLoginPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center">
         <div className="animate-pulse">
-          <Zap className="w-12 h-12 text-primary" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/logo-white.svg" alt="daflash" className="h-12 w-auto" />
         </div>
       </div>
     );
@@ -45,14 +45,12 @@ export default function AdminLoginPage() {
       </div>
 
       <div className="relative w-full max-w-md">
-        {/* Logo and branding */}
+        {/* Logo and branding - use real logo image */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-2xl mb-6">
-            <Zap className="w-8 h-8 text-primary" />
+          <div className="inline-flex items-center justify-center mb-6">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/logo-white.svg" alt="daflash" className="h-12 w-auto" />
           </div>
-          <h1 className="text-3xl font-bold text-white font-heading mb-2">
-            daflash
-          </h1>
           <p className="text-gray-400 text-sm">
             Manage your website, services, and billing
           </p>

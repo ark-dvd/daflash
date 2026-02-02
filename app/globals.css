@@ -67,3 +67,13 @@
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-15px); }
 }
+
+/* Float animation that preserves scaleX(-1) mirror transform */
+@keyframes float-mirrored {
+  0%, 100% { transform: scaleX(-1) translateY(0); }
+  50% { transform: scaleX(-1) translateY(-15px); }
+}
+
+.animate-float-mirrored {
+  animation: float-mirrored 3s ease-in-out infinite;
+}
