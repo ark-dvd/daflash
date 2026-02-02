@@ -6,6 +6,8 @@ import Footer from '@/components/public/Footer';
 import ContactForm from '@/components/public/ContactForm';
 import { getSiteSettings } from '@/lib/data-fetchers';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Contact Us',
   description: 'Get in touch with daflash. Tell us about your business and we\'ll get back to you within 24 hours with a plan to elevate your digital presence.',

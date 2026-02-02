@@ -6,6 +6,8 @@ import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import { getActivePortfolioSites, getSiteSettings } from '@/lib/data-fetchers';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Portfolio',
   description: 'See the websites we\'ve built for our clients. Professional, fast, and tailored to each business.',

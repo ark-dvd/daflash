@@ -8,6 +8,8 @@ import StructuredData from '@/components/StructuredData';
 import { getTestimonialsSchema } from '@/components/structured-data-schemas';
 import { getActiveTestimonials, getSiteSettings } from '@/lib/data-fetchers';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Testimonials',
   description: 'What our clients say about working with daflash. Real reviews from real businesses we\'ve helped grow online.',

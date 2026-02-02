@@ -14,6 +14,8 @@ import {
   getSiteSettings,
 } from '@/lib/data-fetchers';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   alternates: {
     canonical: '/',

@@ -8,6 +8,8 @@ import StructuredData from '@/components/StructuredData';
 import { getServicesPageSchema } from '@/components/structured-data-schemas';
 import { getActiveServices, getSiteSettings } from '@/lib/data-fetchers';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Our Services',
   description: 'Professional digital solutions: website design, domain registration, email setup, logo design, drone photography, and IT support for small businesses.',

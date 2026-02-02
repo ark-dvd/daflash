@@ -6,6 +6,8 @@ import Footer from '@/components/public/Footer';
 import LucideIcon from '@/components/public/LucideIcon';
 import { getLandingPage, getSiteSettings } from '@/lib/data-fetchers';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Websites for Contractors',
   description: 'A complete white-label digital platform built for contractors. Showcase your projects, capture leads, track jobs, and manage everything from your phone.',

@@ -46,6 +46,16 @@ const nextConfig = {
   // Security headers for all routes
   async headers() {
     return [
+      // Force no-cache on dynamic public pages so CDN always serves fresh SSR
+      {
+        source: '/((?!api|_next|images|fonts|favicon).*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate',
+          },
+        ],
+      },
       {
         source: '/:path*',
         headers: securityHeaders,

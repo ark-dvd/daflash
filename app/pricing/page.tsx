@@ -6,6 +6,8 @@ import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import { getPricingPlans, getSiteSettings } from '@/lib/data-fetchers';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Pricing',
   description: 'Transparent pricing for professional websites, email setup, and drone services. Starting from $200. No hidden fees.',

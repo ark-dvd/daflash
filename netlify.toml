@@ -34,6 +34,49 @@
     Cache-Control = "public, max-age=31536000, immutable"
 
 # -----------------------------------------------------------------------------
+# Prevent Netlify CDN from caching dynamic HTML pages
+# -----------------------------------------------------------------------------
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/services"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/pricing"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/portfolio"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/testimonials"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/contact"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/realtors"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/contractors"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# -----------------------------------------------------------------------------
 # Redirects
 # -----------------------------------------------------------------------------
 # www to non-www redirect (canonical URL)

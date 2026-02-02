@@ -6,6 +6,8 @@ import Footer from '@/components/public/Footer';
 import LucideIcon from '@/components/public/LucideIcon';
 import { getLandingPage, getSiteSettings } from '@/lib/data-fetchers';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Websites for Real Estate Agents',
   description: 'A complete white-label digital platform built for realtors. Your brand, your domain, your website — fully managed by you. Property listings, lead capture, deal pipeline, and more.',
